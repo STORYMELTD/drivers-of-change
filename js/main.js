@@ -1,6 +1,9 @@
 /**
- * DRIVERS OF CHANGE — Main Engine v3
+ * DRIVERS OF CHANGE — Main Engine v4
  * StoryMe · Pengon · 2025
+ *
+ * Fix: layers only become visible AFTER GSAP has set
+ * their initial X position — eliminating the pink flash.
  */
 
 (function() {
@@ -15,7 +18,6 @@
     audioEnabled: false,
     muralDisplayWidth: 0,
     muralDisplayHeight: 0,
-    muralScale: 1,
   };
 
   const dom = {
@@ -46,8 +48,9 @@
 
   // ─── INIT ────────────────────────────────────────
   function init() {
-    // Hide all layers immediately — shown only after scroll engine starts
-    dom.muralLayers.style.opacity = '0';
+    // Keep entire layer container invisible until scroll engine is ready
+    dom.muralLayers.style.opacity    = '0';
+    dom.muralLayers.style.visibility = 'hidden';
 
     scaleMural();
     buildLayers();
@@ -58,23 +61,22 @@
 
   // ─── LOADER ──────────────────────────────────────
   function runLoader() {
-    const startTime = Date.now();
-    const MIN_LOADER_MS = 2600; // always show loader for at least this long
+    const start      = Date.now();
+    const MIN_MS     = 2600;
 
-    function showLoader() {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, MIN_LOADER_MS - elapsed);
+    function done() {
+      const wait = Math.max(0, MIN_MS - (Date.now() - start));
       setTimeout(() => {
         dom.loader.classList.add('hidden');
         state.loaded = true;
-      }, remaining);
+      }, wait);
     }
 
     if (dom.muralImg.complete && dom.muralImg.naturalWidth > 0) {
-      showLoader();
+      done();
     } else {
-      dom.muralImg.onload  = showLoader;
-      dom.muralImg.onerror = showLoader;
+      dom.muralImg.addEventListener('load',  done, { once: true });
+      dom.muralImg.addEventListener('error', done, { once: true });
     }
   }
 
@@ -82,37 +84,35 @@
   function scaleMural() {
     const vh = window.innerHeight;
     const vw = window.innerWidth;
+    const scale = vh / STORY_DATA.mural.naturalHeight;
 
-    state.muralScale         = vh / STORY_DATA.mural.naturalHeight;
-    state.muralDisplayWidth  = STORY_DATA.mural.naturalWidth  * state.muralScale;
-    state.muralDisplayHeight = vh; // always exactly viewport height
+    state.muralDisplayWidth  = STORY_DATA.mural.naturalWidth * scale;
+    state.muralDisplayHeight = vh;
 
-    // Base mural
-    dom.muralImg.style.height   = vh + 'px';
+    // Base mural image
     dom.muralImg.style.width    = state.muralDisplayWidth + 'px';
+    dom.muralImg.style.height   = vh + 'px';
     dom.muralImg.style.maxWidth = 'none';
     dom.muralImg.style.display  = 'block';
 
-    // Stage scroll distance
-    const travel = state.muralDisplayWidth - vw;
-    document.getElementById('storyStage').style.height = (travel + vh) + 'px';
+    // Scroll stage height
+    dom.storyStage.style.height =
+      (state.muralDisplayWidth - vw + vh) + 'px';
 
-    // Size layer container
-    dom.muralLayers.style.position = 'absolute';
-    dom.muralLayers.style.top      = '0';
-    dom.muralLayers.style.left     = '0';
-    dom.muralLayers.style.width    = state.muralDisplayWidth + 'px';
-    dom.muralLayers.style.height   = vh + 'px';
-    dom.muralLayers.style.overflow = 'visible';
+    // Layer container
+    Object.assign(dom.muralLayers.style, {
+      position: 'absolute',
+      top:      '0',
+      left:     '0',
+      width:    state.muralDisplayWidth + 'px',
+      height:   vh + 'px',
+    });
 
-    // Size individual layers
+    // Individual layer images
     dom.muralLayers.querySelectorAll('.mural-layer').forEach(img => {
       img.style.width    = state.muralDisplayWidth + 'px';
       img.style.height   = vh + 'px';
       img.style.maxWidth = 'none';
-      img.style.position = 'absolute';
-      img.style.top      = '0';
-      img.style.left     = '0';
     });
 
     positionHotspots();
@@ -126,17 +126,21 @@
       img.src       = layer.src;
       img.alt       = '';
       img.setAttribute('aria-hidden', 'true');
-      img.dataset.layerId    = layer.id;
-      img.style.position     = 'absolute';
-      img.style.top          = '0';
-      img.style.left         = '0';
-      img.style.width        = state.muralDisplayWidth + 'px';
-      img.style.height       = state.muralDisplayHeight + 'px';
-      img.style.maxWidth     = 'none';
-      img.style.zIndex       = layer.zIndex || 1;
-      img.style.pointerEvents = 'none';
-      // All layers start transparent — revealed by scroll engine
-      img.style.opacity      = '0';
+      img.dataset.layerId = layer.id;
+
+      Object.assign(img.style, {
+        position:      'absolute',
+        top:           '0',
+        left:          '0',
+        width:         state.muralDisplayWidth + 'px',
+        height:        state.muralDisplayHeight + 'px',
+        maxWidth:      'none',
+        zIndex:        layer.zIndex || 1,
+        pointerEvents: 'none',
+        // Each layer starts invisible — shown only after GSAP positions it
+        opacity:       '0',
+      });
+
       dom.muralLayers.appendChild(img);
     });
   }
@@ -145,18 +149,18 @@
   function initScrollEngine() {
     gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-    const vw     = window.innerWidth;
+    const vw      = window.innerWidth;
     const travelX = -(state.muralDisplayWidth - vw);
 
-    // ── BASE MURAL PAN ──
+    // ── 1. BASE MURAL PAN ──
     gsap.to(dom.muralWrap, {
       x: travelX,
       ease: 'none',
       scrollTrigger: {
-        trigger: document.getElementById('storyStage'),
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: true,
+        trigger: dom.storyStage,
+        start:   'top top',
+        end:     'bottom bottom',
+        scrub:   true,
         onUpdate: self => {
           state.scrollProgress = self.progress;
           onScrollUpdate(self.progress);
@@ -164,83 +168,86 @@
       }
     });
 
-    // ── REVEAL LAYERS ──
-    // Now that GSAP is in control, show the layer container
-    gsap.to(dom.muralLayers, {
-      opacity: 1,
-      duration: 0.6,
-      delay: 0.2,
-    });
-
-    // Fade in all always-on layers
-    STORY_DATA.layers
-      .filter(l => l.triggerAt === 0)
-      .forEach(l => {
-        const el = dom.muralLayers.querySelector(`[data-layer-id="${l.id}"]`);
-        if (el) gsap.to(el, { opacity: 1, duration: 0.8, delay: 0.3 });
-      });
-
-    // ── PARALLAX ──
+    // ── 2. SET ALL LAYER POSITIONS INSTANTLY (no animation yet) ──
+    // This runs synchronously before we make layers visible,
+    // so they appear already in the correct position — no flash.
     STORY_DATA.layers.forEach(layer => {
       const el = dom.muralLayers.querySelector(`[data-layer-id="${layer.id}"]`);
       if (!el) return;
 
-      // Parallax offset = difference between this layer's travel and base mural travel
-      // depth 1.0 = moves exactly with mural (no parallax)
-      // depth 0.5 = moves half as fast = appears further away
-      // depth 1.2 = moves faster = appears closer
-      const layerTravel  = travelX * layer.depth;
-      const extraOffset  = layerTravel - travelX; // relative offset vs base
+      const extraOffset = (travelX * layer.depth) - travelX;
 
+      // Set initial position at scroll=0 immediately
+      gsap.set(el, { x: 0 }); // at scroll 0, offset is 0
+
+      // Then animate with scroll
       gsap.to(el, {
         x: extraOffset,
         ease: 'none',
         scrollTrigger: {
-          trigger: document.getElementById('storyStage'),
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: true,
+          trigger: dom.storyStage,
+          start:   'top top',
+          end:     'bottom bottom',
+          scrub:   true,
         }
       });
 
-      // Float animation
+      // Float
       if (layer.type === 'float') {
         gsap.to(el, {
           y: -(8 + Math.random() * 6),
-          repeat: -1,
-          yoyo: true,
+          repeat:   -1,
+          yoyo:     true,
           duration: 2.5 + Math.random() * 2,
-          ease: 'sine.inOut',
-          delay: Math.random() * 1.5,
+          ease:     'sine.inOut',
+          delay:    Math.random() * 1.5,
         });
       }
+    });
 
-      // Scroll-triggered fade-in
-      if (layer.triggerAt > 0) {
+    // ── 3. NOW REVEAL LAYERS — positions are already correct ──
+    // Show container
+    dom.muralLayers.style.visibility = 'visible';
+
+    // Fade in always-on layers together
+    const alwaysOn = STORY_DATA.layers
+      .filter(l => l.triggerAt === 0)
+      .map(l => dom.muralLayers.querySelector(`[data-layer-id="${l.id}"]`))
+      .filter(Boolean);
+
+    gsap.to(alwaysOn, {
+      opacity:  1,
+      duration: 0.8,
+      stagger:  0.05,
+      ease:     'power1.out',
+    });
+
+    // ── 4. SCROLL-TRIGGERED LAYERS ──
+    STORY_DATA.layers
+      .filter(l => l.triggerAt > 0)
+      .forEach(layer => {
+        const el = dom.muralLayers.querySelector(`[data-layer-id="${layer.id}"]`);
+        if (!el) return;
+
         ScrollTrigger.create({
-          trigger: document.getElementById('storyStage'),
+          trigger: dom.storyStage,
           start: () => {
-            const maxScroll = document.body.scrollHeight - window.innerHeight;
-            return `top+=${layer.triggerAt * maxScroll}px top`;
+            const max = document.body.scrollHeight - window.innerHeight;
+            return `top+=${layer.triggerAt * max}px top`;
           },
           onEnter:     () => gsap.to(el, { opacity: 1, duration: 1.0 }),
           onLeaveBack: () => gsap.to(el, { opacity: 0, duration: 0.5 }),
         });
-      }
-    });
+      });
   }
 
   // ─── SCROLL UPDATE ───────────────────────────────
   function onScrollUpdate(progress) {
     dom.progressFill.style.width = (progress * 100) + '%';
-
-    if (progress > 0.015) {
-      dom.scrollHint.style.opacity = '0';
-    }
+    if (progress > 0.015) dom.scrollHint.style.opacity = '0';
 
     const idx = getChapterAt(progress);
     if (idx !== state.currentChapter) enterChapter(idx);
-
     updateHotspots(progress);
   }
 
@@ -255,13 +262,11 @@
   function enterChapter(idx) {
     state.currentChapter = idx;
     const ch = STORY_DATA.chapters[idx];
-
-    dom.chapterDots.forEach((dot, i) => {
-      dot.classList.toggle('active',  i === idx);
-      dot.classList.toggle('visited', i <  idx);
+    dom.chapterDots.forEach((d, i) => {
+      d.classList.toggle('active',  i === idx);
+      d.classList.toggle('visited', i <  idx);
     });
-    dom.chapterLabel.textContent = ch.title;
-
+    dom.chapterLabel.textContent  = ch.title;
     dom.overlayNumber.textContent = ch.label;
     dom.overlayTitle.textContent  = ch.title;
     dom.chapterOverlay.classList.remove('show');
@@ -287,24 +292,24 @@
     dom.hotspotsEl.querySelectorAll('.hotspot').forEach((el, i) => {
       const hs = STORY_DATA.hotspots[i];
       if (!hs) return;
-      el.style.left = (hs.position.left / 100 * state.muralDisplayWidth)   + 'px';
-      el.style.top  = (hs.position.top  / 100 * state.muralDisplayHeight)  + 'px';
+      el.style.left = (hs.position.left / 100 * state.muralDisplayWidth)  + 'px';
+      el.style.top  = (hs.position.top  / 100 * state.muralDisplayHeight) + 'px';
     });
   }
 
-  function updateHotspots(progress) {
+  function updateHotspots(p) {
     dom.hotspotsEl.querySelectorAll('.hotspot').forEach((el, i) => {
       const hs = STORY_DATA.hotspots[i];
-      if (hs) el.classList.toggle('visible', progress >= hs.triggerAt);
+      if (hs) el.classList.toggle('visible', p >= hs.triggerAt);
     });
   }
 
   // ─── PANEL ───────────────────────────────────────
   function openPanel(hs) {
-    const c = hs.content;
-    let html = `<p class="panel-chapter">${c.chapter}</p>`;
-    html    += `<h2 class="panel-title">${c.title}</h2>`;
-    html    += `<div class="panel-body">${c.body.map(p=>`<p>${p}</p>`).join('')}</div>`;
+    const c   = hs.content;
+    let html  = `<p class="panel-chapter">${c.chapter}</p>`;
+    html     += `<h2 class="panel-title">${c.title}</h2>`;
+    html     += `<div class="panel-body">${c.body.map(p=>`<p>${p}</p>`).join('')}</div>`;
     if (c.image) html += `<div class="panel-image"><img src="${c.image}" alt="${c.title}" loading="lazy"/></div>`;
     if (c.audio) html += `<div class="panel-audio"><p class="panel-audio-label">Listen</p><audio controls src="${c.audio}" preload="none"></audio></div>`;
     dom.panelContent.innerHTML = html;
@@ -339,15 +344,19 @@
     state.storyStarted = true;
     dom.landing.classList.add('hidden');
     setTimeout(() => dom.storyNav.classList.add('visible'), 800);
-    setTimeout(() => initScrollEngine(), 900);
+    // Small delay to ensure landing fade is done before scroll engine starts
+    setTimeout(() => initScrollEngine(), 1000);
     window.scrollTo({ top: 0 });
   }
 
   // ─── CHAPTER NAV ─────────────────────────────────
   function goToChapter(idx) {
     const max    = document.body.scrollHeight - window.innerHeight;
-    const target = STORY_DATA.chapters[idx].scrollStart * max;
-    gsap.to(window, { scrollTo: target, duration: 1.2, ease: 'power2.inOut' });
+    gsap.to(window, {
+      scrollTo: STORY_DATA.chapters[idx].scrollStart * max,
+      duration: 1.2,
+      ease:     'power2.inOut',
+    });
   }
 
   // ─── EVENTS ──────────────────────────────────────
