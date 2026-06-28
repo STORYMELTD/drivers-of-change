@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15000 1900" width="15000" height="1900">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#1A3A2A"/>
+      <stop offset="20%"  stop-color="#2D5A3D"/>
+      <stop offset="40%"  stop-color="#1E4A2E"/>
+      <stop offset="60%"  stop-color="#3D6B4A"/>
+      <stop offset="80%"  stop-color="#2A5C3E"/>
+      <stop offset="100%" stop-color="#1A3A2A"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#4A3520"/>
+      <stop offset="30%"  stop-color="#5C4A2A"/>
+      <stop offset="60%"  stop-color="#4A3520"/>
+      <stop offset="100%" stop-color="#3D2A18"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sky gradient background -->
+  <rect width="15000" height="1400" fill="url(#sky)"/>
+  <!-- Ground -->
+  <rect y="1400" width="15000" height="500" fill="url(#ground)"/>
+
+  <!-- Chapter dividers -->
+  <line x1="2250"  y1="0" x2="2250"  y2="1900" stroke="rgba(76,175,130,0.15)" stroke-width="2" stroke-dasharray="20,10"/>
+  <line x1="4800"  y1="0" x2="4800"  y2="1900" stroke="rgba(76,175,130,0.15)" stroke-width="2" stroke-dasharray="20,10"/>
+  <line x1="7500"  y1="0" x2="7500"  y2="1900" stroke="rgba(76,175,130,0.15)" stroke-width="2" stroke-dasharray="20,10"/>
+  <line x1="10050" y1="0" x2="10050" y2="1900" stroke="rgba(76,175,130,0.15)" stroke-width="2" stroke-dasharray="20,10"/>
+  <line x1="12600" y1="0" x2="12600" y2="1900" stroke="rgba(76,175,130,0.15)" stroke-width="2" stroke-dasharray="20,10"/>
+
+  <!-- Chapter labels -->
+  <text x="1125"  y="200" text-anchor="middle" fill="rgba(76,175,130,0.5)" font-family="Georgia,serif" font-size="80">Prologue</text>
+  <text x="3525"  y="200" text-anchor="middle" fill="rgba(76,175,130,0.5)" font-family="Georgia,serif" font-size="80">Chapter 1</text>
+  <text x="6150"  y="200" text-anchor="middle" fill="rgba(76,175,130,0.5)" font-family="Georgia,serif" font-size="80">Chapter 2</text>
+  <text x="8775"  y="200" text-anchor="middle" fill="rgba(76,175,130,0.5)" font-family="Georgia,serif" font-size="80">Chapter 3</text>
+  <text x="11325" y="200" text-anchor="middle" fill="rgba(76,175,130,0.5)" font-family="Georgia,serif" font-size="80">Chapter 4</text>
+  <text x="13800" y="200" text-anchor="middle" fill="rgba(76,175,130,0.5)" font-family="Georgia,serif" font-size="80">Chapter 5</text>
+
+  <!-- Placeholder trees scattered across mural -->
+  <!-- Tree group macro -->
+  <g fill="#2D7A55" opacity="0.6">
+    <!-- Prologue trees -->
+    <ellipse cx="800"   cy="900" rx="120" ry="200"/>
+    <ellipse cx="1200"  cy="850" rx="100" ry="180"/>
+    <ellipse cx="1800"  cy="920" rx="140" ry="220"/>
+    <!-- Ch1 trees -->
+    <ellipse cx="3000"  cy="880" rx="130" ry="210"/>
+    <ellipse cx="3600"  cy="860" rx="110" ry="190"/>
+    <ellipse cx="4200"  cy="900" rx="150" ry="230"/>
+    <!-- Ch2 trees -->
+    <ellipse cx="5400"  cy="870" rx="120" ry="200"/>
+    <ellipse cx="6000"  cy="840" rx="100" ry="170"/>
+    <ellipse cx="6600"  cy="890" rx="140" ry="215"/>
+    <!-- Ch3 trees -->
+    <ellipse cx="7800"  cy="860" rx="130" ry="205"/>
+    <ellipse cx="8400"  cy="880" rx="115" ry="190"/>
+    <ellipse cx="9000"  cy="850" rx="145" ry="220"/>
+    <!-- Ch4 trees -->
+    <ellipse cx="10500" cy="875" rx="125" ry="200"/>
+    <ellipse cx="11100" cy="855" rx="105" ry="180"/>
+    <ellipse cx="11700" cy="895" rx="155" ry="235"/>
+    <!-- Ch5 trees -->
+    <ellipse cx="12900" cy="865" rx="135" ry="210"/>
+    <ellipse cx="13500" cy="845" rx="115" ry="185"/>
+    <ellipse cx="14400" cy="880" rx="145" ry="225"/>
+  </g>
+
+  <!-- Placeholder city silhouette (Jerusalem) -->
+  <g fill="rgba(30,50,35,0.8)">
+    <rect x="500"   y="1100" width="80"  height="300"/>
+    <rect x="700"   y="1050" width="120" height="350"/>
+    <rect x="1000"  y="1080" width="90"  height="320"/>
+    <rect x="2500"  y="1060" width="100" height="340"/>
+    <rect x="2700"  y="1020" width="140" height="380"/>
+    <rect x="5000"  y="1070" width="110" height="330"/>
+    <rect x="5300"  y="1040" width="80"  height="360"/>
+    <rect x="7500"  y="1055" width="130" height="345"/>
+    <rect x="7800"  y="1025" width="90"  height="375"/>
+    <rect x="10200" y="1060" width="120" height="340"/>
+    <rect x="10500" y="1030" width="100" height="370"/>
+    <rect x="12800" y="1050" width="110" height="350"/>
+    <rect x="13200" y="1020" width="95"  height="380"/>
+    <rect x="14500" y="1070" width="85"  height="330"/>
+  </g>
+
+  <!-- Placeholder paths/roads -->
+  <path d="M 0 1350 Q 3750 1300 7500 1350 Q 11250 1400 15000 1350"
+        stroke="rgba(196,163,90,0.4)" stroke-width="8" fill="none"/>
+
+  <!-- Center watermark text -->
+  <text x="7500" y="1000" text-anchor="middle" fill="rgba(76,175,130,0.2)"
+        font-family="Georgia,serif" font-size="120" font-style="italic">
+    Mural placeholder — real artwork loads here
+  </text>
+  <text x="7500" y="1130" text-anchor="middle" fill="rgba(76,175,130,0.15)"
+        font-family="Georgia,serif" font-size="60">
+    Drivers of Change · Pengon · East Jerusalem
+  </text>
+</svg>
