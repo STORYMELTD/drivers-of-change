@@ -1,215 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Drivers of Change — A journey through two years of greening East Jerusalem" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Drivers of Change — A journey through East Jerusalem"/>
   <title>Drivers of Change</title>
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="css/main.css"/>
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════════
-       LOADING SCREEN
-  ═══════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════
+       SCREEN 1 — LOADING
+  ═══════════════════════════════ -->
   <div id="loader">
-    <div class="loader__inner">
-      <div class="loader__logo">
-        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="30" cy="30" r="28" stroke="#4CAF82" stroke-width="2" stroke-dasharray="175" stroke-dashoffset="175" class="loader__circle"/>
-        </svg>
+    <img class="loader__bg" src="assets/images/Loading page bg.jpg" alt=""/>
+    <div class="loader__center">
+      <div class="loader__gear-wrap">
+        <img class="loader__gear" src="assets/images/gear.png" alt=""/>
+        <span class="loader__pct" id="loaderPct">0%</span>
       </div>
-      <div class="loader__progress">
-        <div class="loader__bar"></div>
-      </div>
-      <p class="loader__text">Loading experience...</p>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       LANDING PAGE
-  ═══════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════
+       SCREEN 2 — LANDING
+  ═══════════════════════════════ -->
   <section id="landing">
-    <div class="landing__bg"></div>
-    <div class="landing__content">
-      <p class="landing__kicker">Pengon · East Jerusalem · 2023–2025</p>
-      <h1 class="landing__title">
-        <span class="landing__title-line">Drivers</span>
-        <span class="landing__title-line">of Change</span>
-      </h1>
-      <p class="landing__subtitle">
-        Two years. Hundreds of youth. One city learning to grow green.
-      </p>
-      <button id="enterBtn" class="landing__cta">
-        <span>Begin the Journey</span>
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-      <p class="landing__hint">↓ scroll or click to explore</p>
+    <!-- Full landing design image (contains title, layout, typography) -->
+    <img class="landing__design" src="assets/images/title page - landing.png" alt="Drivers of Change"/>
+    <!-- Mural cityscape that appears behind the design -->
+    <img class="landing__quds" src="assets/images/home quds.png" alt=""/>
+    <!-- Logos -->
+    <img class="landing__logos" src="assets/images/logos.png" alt="Pengon · EU · Overseas"/>
+    <!-- Gear on landing track -->
+    <div class="landing__track-wrap">
+      <img class="landing__track" src="assets/images/gear track home-01.png" alt=""/>
+      <img class="landing__gear" id="landingGear" src="assets/images/gear.png" alt=""/>
     </div>
-    <!-- Audio toggle -->
-    <button id="audioToggle" class="audio-toggle" aria-label="Toggle ambient sound">
-      <svg class="audio-on" viewBox="0 0 24 24" fill="none">
-        <path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="2"/>
-        <path d="M15.54 8.46a5 5 0 010 7.07" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M19.07 4.93a10 10 0 010 14.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <svg class="audio-off" viewBox="0 0 24 24" fill="none" style="display:none">
-        <path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="2"/>
-        <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+    <!-- CTA -->
+    <button id="driveBtn" class="drive-btn">
+      <span>Drive Through</span>
     </button>
   </section>
 
-  <!-- ═══════════════════════════════════════════
-       NAVIGATION BAR
-  ═══════════════════════════════════════════ -->
-  <nav id="storyNav" class="story-nav" aria-label="Story chapters">
-    <div class="story-nav__inner">
-
-      <!-- Chapter dots -->
-      <div class="story-nav__chapters">
-        <button class="chapter-dot active" data-chapter="0" data-label="Prologue" aria-label="Go to Prologue">
-          <span class="chapter-dot__pulse"></span>
-        </button>
-        <div class="chapter-dot__line"></div>
-        <button class="chapter-dot" data-chapter="1" data-label="Roots" aria-label="Go to Chapter 1: Roots">
-          <span class="chapter-dot__pulse"></span>
-        </button>
-        <div class="chapter-dot__line"></div>
-        <button class="chapter-dot" data-chapter="2" data-label="Seeds" aria-label="Go to Chapter 2: Seeds">
-          <span class="chapter-dot__pulse"></span>
-        </button>
-        <div class="chapter-dot__line"></div>
-        <button class="chapter-dot" data-chapter="3" data-label="Growth" aria-label="Go to Chapter 3: Growth">
-          <span class="chapter-dot__pulse"></span>
-        </button>
-        <div class="chapter-dot__line"></div>
-        <button class="chapter-dot" data-chapter="4" data-label="Harvest" aria-label="Go to Chapter 4: Harvest">
-          <span class="chapter-dot__pulse"></span>
-        </button>
-        <div class="chapter-dot__line"></div>
-        <button class="chapter-dot" data-chapter="5" data-label="Future" aria-label="Go to Chapter 5: Future">
-          <span class="chapter-dot__pulse"></span>
-        </button>
-      </div>
-
-      <!-- Progress bar -->
-      <div class="story-nav__progress">
-        <div class="story-nav__progress-fill" id="progressFill"></div>
-      </div>
-
-      <!-- Chapter label -->
-      <div class="story-nav__label" id="chapterLabel">Prologue</div>
-
+  <!-- ═══════════════════════════════
+       SCREEN 3 — BAB AL-AMOUD
+  ═══════════════════════════════ -->
+  <section id="babSection">
+    <div class="bab__scene">
+      <img class="bab__img" id="babImg" src="assets/images/bab alamoud-01.png" alt="Bab al-Amoud — Damascus Gate, Jerusalem"/>
     </div>
-  </nav>
+    <p class="bab__hint">Scroll to enter</p>
+  </section>
 
-  <!-- ═══════════════════════════════════════════
-       STORY STAGE — HORIZONTAL SCROLL EXPERIENCE
-  ═══════════════════════════════════════════ -->
-  <main id="storyStage" class="story-stage" aria-label="Interactive story">
+  <!-- ═══════════════════════════════
+       SCREEN 4 — THE MURAL JOURNEY
+  ═══════════════════════════════ -->
+  <main id="storyStage">
 
-    <!-- Mural container — this is the 15000px wide world -->
+    <!-- Sticky viewport -->
     <div id="muralTrack" class="mural-track">
 
-      <!-- THE MURAL IMAGE — swap src when assets arrive -->
-      <div class="mural-wrap">
+      <!-- Everything that moves horizontally lives here -->
+      <div id="muralWrap" class="mural-wrap">
+
+        <!-- Base mural -->
         <img
           id="muralImg"
           class="mural-img"
-src="assets/images/DoC-Layers/%D8%A7%D9%84%D9%84%D9%88%D8%AD%D8%A9%20%D9%83%D8%A7%D9%85%D9%84%D8%A9.jpg"
-          alt="Drivers of Change mural — a panoramic artwork depicting the green journey through East Jerusalem"
+          src="assets/images/DoC-Layers/%D8%A7%D9%84%D9%84%D9%88%D8%AD%D8%A9%20%D9%83%D8%A7%D9%85%D9%84%D8%A9.jpg"
+          alt="Drivers of Change — East Jerusalem mural"
           draggable="false"
         />
 
-        <!-- ANIMATED LAYERS — positioned absolutely over mural -->
-        <!-- Each layer is a separate PNG from the artist's files -->
-        <!-- We'll populate these once assets arrive -->
-        <div class="mural-layers" id="muralLayers">
-          <!-- Layer example — will be replaced with real assets:
-          <img class="mural-layer parallax-slow" data-depth="0.3"
-               src="assets/layers/layer-trees.png" alt="" aria-hidden="true" />
-          <img class="mural-layer parallax-mid" data-depth="0.6"
-               src="assets/layers/layer-youth.png" alt="" aria-hidden="true" />
-          -->
+        <!-- Parallax layers stacked over mural -->
+        <div id="muralLayers" class="mural-layers"></div>
+
+        <!-- Gear rolling on track -->
+        <div id="gearSystem" class="gear-system">
+          <img id="muralTrackImg" class="mural-track-img" src="assets/images/gear track long-01.png" alt=""/>
+          <img id="muralGear"     class="mural-gear"      src="assets/images/gear.png" alt=""/>
         </div>
 
-        <!-- HOTSPOTS — triggered on scroll -->
-        <!-- These will be positioned precisely once we have the mural map -->
-        <div class="hotspots" id="hotspots">
+        <!-- Chapter text boxes (5 chapters) -->
+        <div id="chapters" class="chapters"></div>
 
-          <!-- HOTSPOT TEMPLATE (repeated for each hotspot):
-          <button class="hotspot" data-id="hs-1"
-                  style="left: 8%; top: 45%"
-                  aria-label="Open story point: The Beginning">
-            <span class="hotspot__ring"></span>
-            <span class="hotspot__dot"></span>
-          </button>
-          -->
+        <!-- Hotspots -->
+        <div id="hotspots" class="hotspots"></div>
 
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Scroll hint -->
-    <div class="scroll-hint" id="scrollHint">
-      <span>Scroll to explore</span>
-      <div class="scroll-hint__arrow">→</div>
-    </div>
+      </div><!-- /muralWrap -->
+    </div><!-- /muralTrack -->
 
   </main>
 
-  <!-- ═══════════════════════════════════════════
-       HOTSPOT PANEL — slides in when hotspot clicked
-  ═══════════════════════════════════════════ -->
-  <aside id="hotspotPanel" class="hotspot-panel" aria-hidden="true" role="dialog">
-    <button class="hotspot-panel__close" id="closePanel" aria-label="Close">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+  <!-- ═══════════════════════════════
+       CHAPTER PANEL (slide-in)
+  ═══════════════════════════════ -->
+  <aside id="hotspotPanel" class="hotspot-panel" aria-hidden="true">
+    <button class="panel-close" id="closePanel">
+      <img src="assets/images/X.svg" alt="Close"/>
     </button>
-    <div class="hotspot-panel__content" id="panelContent">
-      <!-- Populated dynamically by JS -->
-    </div>
+    <div class="panel-content" id="panelContent"></div>
   </aside>
 
-  <!-- ═══════════════════════════════════════════
-       CHAPTER TITLE OVERLAY — appears on chapter enter
-  ═══════════════════════════════════════════ -->
-  <div id="chapterOverlay" class="chapter-overlay" aria-live="polite">
-    <div class="chapter-overlay__inner">
-      <span class="chapter-overlay__number" id="overlayNumber">Chapter 1</span>
-      <h2 class="chapter-overlay__title" id="overlayTitle">Roots</h2>
+  <!-- Navigation bar -->
+  <nav id="storyNav" class="story-nav">
+    <div class="story-nav__inner">
+      <div class="story-nav__dots" id="navDots"></div>
+      <div class="story-nav__progress">
+        <div class="story-nav__fill" id="progressFill"></div>
+      </div>
+      <span class="story-nav__label" id="chapterLabel"></span>
     </div>
-  </div>
+  </nav>
 
-  <!-- Audio element (ambient) -->
-  <audio id="ambientAudio" loop preload="none">
-    <!-- <source src="assets/audio/ambient.mp3" type="audio/mpeg"> -->
-  </audio>
+  <!-- Audio toggle -->
+  <button id="audioToggle" class="audio-toggle">
+    <svg class="ico-sound-on"  viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="2"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <svg class="ico-sound-off" viewBox="0 0 24 24" fill="none" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
 
-  <!-- ═══════════════════════════════════════════
-       SCRIPTS
-  ═══════════════════════════════════════════ -->
+  <audio id="ambientAudio" loop preload="none"></audio>
 
-  <!-- GSAP — scroll animation engine -->
+  <!-- GSAP -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
 
-  <!-- Howler — audio management -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
-
-  <!-- Story data — chapters, hotspots, animations -->
   <script src="js/story-data.js"></script>
-
-  <!-- Core engine -->
   <script src="js/main.js"></script>
-
 </body>
 </html>
