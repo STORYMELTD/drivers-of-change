@@ -130,7 +130,7 @@
     
     muralImg.src = D.muralImg.src;
     // Loader runs on timer only
-    setTimeout(done, 100);
+    setTimeout(done, 2800);
 
     // Also preload track tile
     const trackImg = new Image();
