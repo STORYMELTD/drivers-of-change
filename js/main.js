@@ -438,7 +438,7 @@
 
       if (layer.triggerAt === 0) {
         // Fade in immediately after scroll engine starts
-        gsap.to(el, { opacity: 1, duration: 0.9, delay: 0.2 });
+        gsap.to(el, { opacity: 1, visibility: 'visible', duration: 0.9, delay: 0.2 });
       } else {
         ScrollTrigger.create({
           trigger: D.storyStage,
