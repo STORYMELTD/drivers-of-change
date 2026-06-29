@@ -111,9 +111,10 @@
     S.phase = 'bab';
     D.landing.classList.add('out');
     setTimeout(() => {
+      D.landing.style.display = 'none';
       D.babSection.classList.add('visible');
       initBabScroll();
-    }, 700);
+    }, 900);
   }
 
   // ══════════════════════════════════════════
