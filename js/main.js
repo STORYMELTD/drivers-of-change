@@ -65,7 +65,6 @@
 
     scaleMural();
     buildNav();
-    buildLayers();
     buildChapterBoxes();
     buildHotspots();
     setupEvents();
@@ -179,6 +178,7 @@
       D.storyNav.classList.add('visible');
       document.body.style.overflow = '';
       window.scrollTo({ top: 0 });
+      buildLayers();
       initScrollEngine();
     }, 600);
   }
@@ -381,7 +381,7 @@
     const idx = getChapterAt(progress);
     if (idx !== S.currentChapter) setChapter(idx);
     updateHotspots(progress);
-    lazyLoadLayers(progress);
+
   }
 
   function lazyLoadLayers(progress) {
@@ -439,7 +439,9 @@
     STORY_DATA.layers.forEach(layer => {
       const img = document.createElement('img');
       img.className          = 'mural-layer';
-      img.setAttribute('data-src', layer.src);
+      img.src = layer.src;
+      img.loading = 'lazy';
+      img.decoding = 'async';
       img.alt                = '';
       img.setAttribute('aria-hidden', 'true');
       img.dataset.layerId    = layer.id;
