@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="description" content="Drivers of Change — A journey through East Jerusalem"/>
   <title>Drivers of Change</title>
+  <!-- Ubuntu font from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
 </head>
 <body>
@@ -14,11 +18,9 @@
   ═══════════════════════════════ -->
   <div id="loader">
     <img class="loader__bg" src="assets/images/Loading page bg.jpg" alt=""/>
-    <div class="loader__center">
-      <div class="loader__gear-wrap">
-        <img class="loader__gear" src="assets/images/gear.png" alt=""/>
-        <span class="loader__pct" id="loaderPct">0%</span>
-      </div>
+    <div id="loaderGearWrap" class="loader__gear-wrap">
+      <img id="loaderGear" class="loader__gear" src="assets/images/gear.png" alt=""/>
+      <span id="loaderPct" class="loader__pct">0%</span>
     </div>
   </div>
 
@@ -26,75 +28,98 @@
        SCREEN 2 — LANDING
   ═══════════════════════════════ -->
   <section id="landing">
-    <!-- Full landing design image (contains title, layout, typography) -->
-    <img class="landing__design" src="assets/images/title page - landing.png" alt="Drivers of Change"/>
-    <!-- Mural cityscape that appears behind the design -->
+
+    <!-- Background -->
+    <img class="landing__bg" src="assets/images/Loading page bg.jpg" alt=""/>
+
+    <!-- City mural behind everything -->
     <img class="landing__quds" src="assets/images/home quds.png" alt=""/>
+
+    <!-- Main gear — 100%, slow rotation, drop shadow -->
+    <div class="landing__gear-wrap">
+      <img id="landingGear" class="landing__gear" src="assets/images/gear.png" alt=""/>
+    </div>
+
+    <!-- White horizontal rule + subtitle -->
+    <div class="landing__subtitle-wrap">
+      <div class="landing__rule"></div>
+      <p class="landing__subtitle">Youth-Led Climate Futures in Jerusalem</p>
+    </div>
+
+    <!-- Main title -->
+    <div class="landing__title-wrap">
+      <h1 class="landing__title">
+        <span class="landing__title-line1">Drivers of</span>
+        <span class="landing__title-line2">Change</span>
+      </h1>
+    </div>
+
     <!-- Logos -->
     <img class="landing__logos" src="assets/images/logos.png" alt="Pengon · EU · Overseas"/>
-    <!-- Gear on landing track -->
-    <div class="landing__track-wrap">
+
+    <!-- Bottom tented track + CTA -->
+    <div class="landing__bottom">
       <img class="landing__track" src="assets/images/gear track home-01.png" alt=""/>
-      <img class="landing__gear" id="landingGear" src="assets/images/gear.png" alt=""/>
+      <button id="driveBtn" class="drive-btn">Drive Through</button>
     </div>
-    <!-- CTA -->
-    <button id="driveBtn" class="drive-btn">
-      <span>Drive Through</span>
-    </button>
+
   </section>
 
   <!-- ═══════════════════════════════
        SCREEN 3 — BAB AL-AMOUD
   ═══════════════════════════════ -->
   <section id="babSection">
-    <div class="bab__scene">
-      <img class="bab__img" id="babImg" src="assets/images/bab alamoud-01.png" alt="Bab al-Amoud — Damascus Gate, Jerusalem"/>
+    <div class="bab__wrap">
+      <img id="babImg" class="bab__img" src="assets/images/bab alamoud-01.png" alt="Bab al-Amoud — Damascus Gate, Jerusalem"/>
+      <!-- Mask to hide mural tips bleeding from top -->
+      <div class="bab__top-mask"></div>
     </div>
-    <p class="bab__hint">Scroll to enter</p>
+    <div class="bab__hint">
+      <span>Scroll to enter</span>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
   </section>
 
   <!-- ═══════════════════════════════
        SCREEN 4 — THE MURAL JOURNEY
   ═══════════════════════════════ -->
   <main id="storyStage">
-
-    <!-- Sticky viewport -->
-    <div id="muralTrack" class="mural-track">
-
-      <!-- Everything that moves horizontally lives here -->
+    <div id="muralViewport" class="mural-viewport">
       <div id="muralWrap" class="mural-wrap">
 
-        <!-- Base mural -->
+        <!-- Base mural (full composite) -->
         <img
           id="muralImg"
           class="mural-img"
           src="assets/images/DoC-Layers/%D8%A7%D9%84%D9%84%D9%88%D8%AD%D8%A9%20%D9%83%D8%A7%D9%85%D9%84%D8%A9.jpg"
-          alt="Drivers of Change — East Jerusalem mural"
+          alt="Drivers of Change mural"
           draggable="false"
         />
 
-        <!-- Parallax layers stacked over mural -->
+        <!-- Individual layers — assembled from layer map (tomorrow) -->
         <div id="muralLayers" class="mural-layers"></div>
 
-        <!-- Gear rolling on track -->
-        <div id="gearSystem" class="gear-system">
-          <img id="muralTrackImg" class="mural-track-img" src="assets/images/gear track long-01.png" alt=""/>
-          <img id="muralGear"     class="mural-gear"      src="assets/images/gear.png" alt=""/>
-        </div>
-
-        <!-- Chapter text boxes (5 chapters) -->
-        <div id="chapters" class="chapters"></div>
+        <!-- Chapter text boxes -->
+        <div id="chaptersEl" class="chapters-wrap"></div>
 
         <!-- Hotspots -->
-        <div id="hotspots" class="hotspots"></div>
+        <div id="hotspotsEl" class="hotspots-wrap"></div>
 
-      </div><!-- /muralWrap -->
-    </div><!-- /muralTrack -->
+        <!-- Gear + track system — sits at bottom of mural -->
+        <div id="gearSystem" class="gear-system">
+          <div id="trackWrap" class="track-wrap">
+            <!-- Track rendered as repeating canvas in JS -->
+            <canvas id="trackCanvas" class="track-canvas"></canvas>
+          </div>
+          <img id="muralGear" class="mural-gear" src="assets/images/gear.png" alt=""/>
+        </div>
 
+      </div>
+    </div>
   </main>
 
   <!-- ═══════════════════════════════
-       CHAPTER PANEL (slide-in)
+       HOTSPOT SIDE PANEL
   ═══════════════════════════════ -->
   <aside id="hotspotPanel" class="hotspot-panel" aria-hidden="true">
     <button class="panel-close" id="closePanel">
@@ -103,30 +128,27 @@
     <div class="panel-content" id="panelContent"></div>
   </aside>
 
-  <!-- Navigation bar -->
+  <!-- Navigation -->
   <nav id="storyNav" class="story-nav">
     <div class="story-nav__inner">
-      <div class="story-nav__dots" id="navDots"></div>
-      <div class="story-nav__progress">
-        <div class="story-nav__fill" id="progressFill"></div>
+      <div id="navDots" class="nav-dots"></div>
+      <div class="nav-progress">
+        <div id="progressFill" class="nav-progress__fill"></div>
       </div>
-      <span class="story-nav__label" id="chapterLabel"></span>
+      <span id="chapterLabel" class="nav-label"></span>
     </div>
   </nav>
 
-  <!-- Audio toggle -->
-  <button id="audioToggle" class="audio-toggle">
-    <svg class="ico-sound-on"  viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="2"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    <svg class="ico-sound-off" viewBox="0 0 24 24" fill="none" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  <!-- Audio -->
+  <button id="audioToggle" class="audio-toggle" aria-label="Toggle sound">
+    <svg class="ico-on"  viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="2"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <svg class="ico-off" viewBox="0 0 24 24" fill="none" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
   </button>
-
   <audio id="ambientAudio" loop preload="none"></audio>
 
-  <!-- GSAP -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
-
   <script src="js/story-data.js"></script>
   <script src="js/main.js"></script>
 </body>
