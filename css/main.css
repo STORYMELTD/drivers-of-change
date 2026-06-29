@@ -1,29 +1,41 @@
 /* ═══════════════════════════════════════════
-   DRIVERS OF CHANGE — Stylesheet v5
+   DRIVERS OF CHANGE — Stylesheet v6
    StoryMe · Pengon · 2025
 ═══════════════════════════════════════════ */
 
 :root {
-  --gear-full:  490px;   /* 100% gear diameter */
-  --gear-small: 294px;   /* 60% gear diameter on track */
-  --track-h:    80px;    /* track height */
-  --nav-h:      56px;
-  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+  --gear-full:   490px;
+  --gear-small:  294px;   /* 60% */
+  --gear-loader: 98px;    /* 20% */
+  --track-h:     72px;
+  --nav-h:       56px;
+  --gold:        #C4A35A;
+  --deep:        #0d1a0f;
+  --text:        #F0EDE6;
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { width: 100%; height: 100%; overflow-x: hidden; }
-body { background: #0d1a0f; font-family: system-ui, sans-serif; }
-img  { display: block; }
-button { cursor: pointer; border: none; background: none; }
+html { scroll-behavior: auto; }
+body {
+  background: var(--deep);
+  color: var(--text);
+  font-family: 'Ubuntu', system-ui, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+img { display: block; }
+button { cursor: pointer; border: none; background: none; color: inherit; font-family: inherit; }
 
-/* ─── LOADER ──────────────────────────────── */
+/* ─────────────────────────────────────────
+   SCREEN 1 — LOADER
+───────────────────────────────────────── */
 #loader {
   position: fixed;
   inset: 0;
   z-index: 1000;
   overflow: hidden;
-  transition: opacity 0.8s var(--ease-out);
+  transition: opacity 0.9s var(--ease-out);
 }
 #loader.out { opacity: 0; pointer-events: none; }
 
@@ -33,47 +45,65 @@ button { cursor: pointer; border: none; background: none; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
 }
 
-.loader__center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+/*
+  Gear position derived from Illustrator canvas coords:
+  Illustrator canvas: ~1600 × 900 (typical A3 landscape)
+  x=1040, y=550 → approximately 65% from left, 61% from top
+  We use % positioning so it works on all screens.
+*/
 .loader__gear-wrap {
-  position: relative;
-  width: calc(var(--gear-full) * 0.20);
-  height: calc(var(--gear-full) * 0.20);
+  position: absolute;
+  /* Place at convergence of drawn lines */
+  left: 65%;
+  top:  61%;
+  transform: translate(-50%, -50%);
+  width:  var(--gear-loader);
+  height: var(--gear-loader);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .loader__gear {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  width:  var(--gear-loader);
+  height: var(--gear-loader);
   object-fit: contain;
-  animation: spin 3s linear infinite;
+  /* Rotate around true center of the gear image */
+  transform-origin: 50% 50%;
+  animation: spin-cw 2.5s linear infinite;
 }
 
 .loader__pct {
+  /* Left-aligned, 20px from left edge of gear */
   position: absolute;
+  left: calc(100% + 20px);
+  top:  50%;
+  transform: translateY(-50%);
   color: #fff;
+  font-family: 'Ubuntu', sans-serif;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
-/* ─── LANDING ─────────────────────────────── */
+/* ─────────────────────────────────────────
+   SCREEN 2 — LANDING
+───────────────────────────────────────── */
 #landing {
   position: fixed;
   inset: 0;
   z-index: 100;
   overflow: hidden;
-  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
 }
 #landing.out {
   opacity: 0;
@@ -81,121 +111,195 @@ button { cursor: pointer; border: none; background: none; }
   pointer-events: none;
 }
 
-/* The full landing design PNG — positioned to match the design exactly */
-.landing__design {
+/* Background image */
+.landing__bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  z-index: 2;
+  z-index: 0;
 }
 
-/* Cityscape behind the design */
+/* Quds city mural — bottom portion, bleeds up */
 .landing__quds {
   position: absolute;
-  bottom: 0;
+  bottom: var(--track-h);
   left: 0;
   width: 100%;
   z-index: 1;
-  object-fit: cover;
+  pointer-events: none;
 }
 
-/* Logos — bottom area */
-.landing__logos {
+/* Gear — 100% size, centered, slow rotation, drop shadow */
+.landing__gear-wrap {
   position: absolute;
-  bottom: var(--track-h);
+  /* Horizontally centered, vertically in lower-mid area */
+  left: 50%;
+  top:  52%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  width:  var(--gear-full);
+  height: var(--gear-full);
+  pointer-events: none;
+}
+
+.landing__gear {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 50% 50%;
+  animation: spin-cw 18s linear infinite;
+  filter: drop-shadow(0 8px 32px rgba(0,0,0,0.55))
+          drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+}
+
+/* White rule + subtitle — sits above gear area */
+.landing__subtitle-wrap {
+  position: absolute;
+  top: 22%;
   left: 50%;
   transform: translateX(-50%);
-  height: 48px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  white-space: nowrap;
+}
+
+.landing__rule {
+  width: 60px;
+  height: 1.5px;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.landing__subtitle {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.01em;
+}
+
+/* Main title block */
+.landing__title-wrap {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.landing__title {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.landing__title-line1 {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 45pt;
+  font-weight: 500;
+  font-style: italic;
+  color: #fff;
+  display: block;
+  line-height: 1.1;
+}
+
+.landing__title-line2 {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 100pt;
+  font-weight: 700;
+  font-style: normal;
+  color: #fff;
+  display: block;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+/* Logos */
+.landing__logos {
+  position: absolute;
+  bottom: calc(var(--track-h) + 20px);
+  left: 50%;
+  transform: translateX(-50%);
+  height: 44px;
   width: auto;
   z-index: 4;
   opacity: 0.9;
 }
 
-/* Track + gear at bottom of landing */
-.landing__track-wrap {
+/* Bottom: tented track + drive button */
+.landing__bottom {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: var(--track-h);
-  z-index: 3;
+  z-index: 5;
   display: flex;
   align-items: flex-end;
+  justify-content: center;
 }
 
 .landing__track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: var(--track-h);
   object-fit: cover;
-  object-position: top;
+  object-position: top center;
 }
 
-.landing__gear {
-  position: absolute;
-  left: 50%;
-  bottom: calc(var(--track-h) * 0.35);
-  transform: translateX(-50%);
-  width: var(--gear-full);
-  height: var(--gear-full);
-  object-fit: contain;
-  animation: spin 8s linear infinite;
-  transform-origin: center bottom;
-}
-
-/* CTA Button */
 .drive-btn {
   position: absolute;
-  /* Positioned to sit over the landing design's CTA area */
-  bottom: calc(var(--track-h) + 120px);
+  bottom: calc(var(--track-h) + 32px);
   left: 50%;
   transform: translateX(-50%);
-  z-index: 5;
-  padding: 16px 48px;
-  background: #C4A35A;
-  color: #1A1A0A;
-  font-size: 1.1rem;
+  z-index: 6;
+  padding: 15px 52px;
+  background: var(--gold);
+  color: #1A1200;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  border-radius: 4px;
+  border-radius: 3px;
+  box-shadow: 0 4px 24px rgba(196,163,90,0.45);
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 24px rgba(196,163,90,0.4);
+  white-space: nowrap;
 }
 .drive-btn:hover {
-  background: #d4b36a;
+  background: #d4b86a;
   transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 8px 32px rgba(196,163,90,0.5);
+  box-shadow: 0 8px 36px rgba(196,163,90,0.55);
 }
 
-/* ─── BAB AL-AMOUD ────────────────────────── */
+/* ─────────────────────────────────────────
+   SCREEN 3 — BAB AL-AMOUD
+───────────────────────────────────────── */
 #babSection {
   position: fixed;
   inset: 0;
   z-index: 90;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.6s;
+  transition: opacity 0.7s var(--ease-out);
+  background: #e87b3a; /* orange bg — matches illustration */
 }
-#babSection.visible {
-  opacity: 1;
-  pointer-events: all;
-}
-#babSection.out {
-  opacity: 0;
-  pointer-events: none;
-}
+#babSection.visible { opacity: 1; pointer-events: all; }
+#babSection.out     { opacity: 0; pointer-events: none; }
 
-.bab__scene {
-  width: 100%;
-  height: 100%;
-  position: relative;
+.bab__wrap {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
@@ -203,9 +307,20 @@ button { cursor: pointer; border: none; background: none; }
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
-  transform-origin: center 30%; /* zoom target — top-center window */
+  object-position: center bottom; /* anchor to bottom, hide top bleed */
+  transform-origin: 50% 28%;     /* zoom target: top-center gate window */
   will-change: transform;
+}
+
+/* Mask: covers any mural tips bleeding from top of PNG */
+.bab__top-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 18%;   /* covers the bleed area */
+  background: #e87b3a;
+  z-index: 2;
 }
 
 .bab__hint {
@@ -213,28 +328,37 @@ button { cursor: pointer; border: none; background: none; }
   bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
-  color: rgba(255,255,255,0.7);
-  font-size: 14px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255,255,255,0.75);
+  font-size: 13px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  animation: pulse-hint 2s ease-in-out infinite;
+  animation: bab-pulse 2.5s ease-in-out infinite;
 }
-@keyframes pulse-hint {
-  0%, 100% { opacity: 0.7; }
-  50%       { opacity: 0.3; }
+.bab__hint svg { width: 20px; height: 20px; }
+@keyframes bab-pulse {
+  0%, 100% { opacity: 0.75; transform: translateX(-50%) translateY(0); }
+  50%       { opacity: 0.35; transform: translateX(-50%) translateY(4px); }
 }
 
-/* ─── STORY STAGE ─────────────────────────── */
+/* ─────────────────────────────────────────
+   SCREEN 4 — MURAL JOURNEY
+───────────────────────────────────────── */
 #storyStage {
-  /* Height set dynamically in JS */
   position: relative;
+  /* height set by JS */
 }
 
-.mural-track {
+.mural-viewport {
   position: sticky;
   top: 0;
   height: 100vh;
   overflow: hidden;
+  background: var(--deep);
 }
 
 .mural-wrap {
@@ -251,19 +375,24 @@ button { cursor: pointer; border: none; background: none; }
   width: auto;
   max-width: none;
   display: block;
+  /* Hidden until layers assembled — base only shows if layers fail */
+  opacity: 1;
 }
 
-/* ─── LAYERS ──────────────────────────────── */
+/* ─────────────────────────────────────────
+   LAYERS
+───────────────────────────────────────── */
 .mural-layers {
   position: absolute;
   top: 0;
   left: 0;
   height: 100vh;
   pointer-events: none;
-  /* Hidden until scroll engine initialises */
+  /* Invisible until scroll engine initializes — prevents white flash */
   opacity: 0;
   visibility: hidden;
 }
+
 .mural-layer {
   position: absolute;
   top: 0;
@@ -271,39 +400,49 @@ button { cursor: pointer; border: none; background: none; }
   height: 100vh;
   max-width: none;
   pointer-events: none;
+  opacity: 0; /* each layer fades in after GSAP positions it */
 }
 
-/* ─── GEAR SYSTEM ─────────────────────────── */
+/* ─────────────────────────────────────────
+   GEAR + TRACK SYSTEM
+───────────────────────────────────────── */
 .gear-system {
   position: absolute;
   bottom: 0;
   left: 0;
   height: var(--track-h);
-  /* Width set in JS to match mural display width */
+  pointer-events: none;
+  /* width set by JS to match mural display width */
 }
 
-.mural-track-img {
+.track-wrap {
   position: absolute;
   bottom: 0;
   left: 0;
+  width: 100%;
   height: var(--track-h);
-  /* Width tiled in JS */
-  max-width: none;
+}
+
+.track-canvas {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  /* drawn in JS by tiling the track PNG at exact gear pitch */
 }
 
 .mural-gear {
   position: absolute;
-  bottom: calc(var(--track-h) * 0.3);
-  /* left position animated by JS */
-  width: var(--gear-full);
-  height: var(--gear-full);
+  /* bottom and left set dynamically in JS */
   object-fit: contain;
-  transform-origin: center center;
-  will-change: transform;
+  transform-origin: 50% 50%;
+  will-change: transform, left, width, height;
+  pointer-events: none;
 }
 
-/* ─── CHAPTER TEXT BOXES ──────────────────── */
-.chapters {
+/* ─────────────────────────────────────────
+   CHAPTER TEXT BOXES
+───────────────────────────────────────── */
+.chapters-wrap {
   position: absolute;
   top: 0;
   left: 0;
@@ -314,63 +453,83 @@ button { cursor: pointer; border: none; background: none; }
 .chapter-box {
   position: absolute;
   width: 340px;
-  max-height: 55vh;
-  background: rgba(15, 30, 18, 0.92);
-  border: 1px solid rgba(196,163,90,0.4);
+  background: rgba(12, 24, 14, 0.93);
+  border: 1px solid rgba(196,163,90,0.35);
   border-radius: 6px;
-  padding: 28px 28px 24px;
-  overflow-y: auto;
+  overflow: hidden;
   pointer-events: all;
+  /* Start invisible and shifted down */
   opacity: 0;
-  transform: translateY(20px);
-  transition: none; /* GSAP handles this */
-  -webkit-overflow-scrolling: touch;
+  transform: translateY(24px);
+  /* GSAP controls animation */
 }
-.chapter-box.active {
-  /* GSAP animates opacity + translateY */
+
+.chapter-box__header {
+  padding: 22px 44px 16px 24px;
+  border-bottom: 1px solid rgba(196,163,90,0.15);
+  flex-shrink: 0;
 }
 
 .chapter-box__label {
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 700;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: #C4A35A;
-  margin-bottom: 10px;
+  color: var(--gold);
+  margin-bottom: 6px;
 }
 
 .chapter-box__title {
-  font-family: Georgia, serif;
-  font-size: 1.4rem;
-  font-weight: 400;
-  color: #F0EDE6;
-  line-height: 1.25;
-  margin-bottom: 16px;
+  font-family: 'Ubuntu', serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.2;
 }
 
+/* Scrollable text area inside box */
 .chapter-box__body {
-  font-size: 0.92rem;
-  line-height: 1.75;
+  padding: 16px 24px 20px;
+  max-height: 42vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(196,163,90,0.3) transparent;
+  font-size: 0.9rem;
+  line-height: 1.78;
   color: rgba(240,237,230,0.75);
 }
-.chapter-box__body p + p { margin-top: 0.9em; }
+.chapter-box__body::-webkit-scrollbar { width: 4px; }
+.chapter-box__body::-webkit-scrollbar-track { background: transparent; }
+.chapter-box__body::-webkit-scrollbar-thumb { background: rgba(196,163,90,0.3); border-radius: 4px; }
+.chapter-box__body p + p { margin-top: 0.85em; }
 
 .chapter-box__close {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
+  top: 14px;
+  right: 14px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.6;
+  opacity: 0.5;
   transition: opacity 0.2s;
+  flex-shrink: 0;
 }
 .chapter-box__close:hover { opacity: 1; }
-.chapter-box__close img { width: 16px; height: 16px; }
+.chapter-box__close img { width: 14px; height: 14px; }
 
-/* ─── HOTSPOTS ────────────────────────────── */
-.hotspots { position: absolute; top: 0; left: 0; height: 100vh; }
+/* ─────────────────────────────────────────
+   HOTSPOTS
+───────────────────────────────────────── */
+.hotspots-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100vh;
+}
 
 .hotspot {
   position: absolute;
@@ -390,22 +549,29 @@ button { cursor: pointer; border: none; background: none; }
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 2px solid #C4A35A;
-  animation: ring-pulse 2.5s infinite;
+  border: 2px solid var(--gold);
+  animation: ring-out 2.5s ease-out infinite;
 }
-@keyframes ring-pulse {
+@keyframes ring-out {
   0%   { transform: scale(1); opacity: 0.7; }
-  100% { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.4); opacity: 0; }
 }
 .hotspot__dot {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  background: #C4A35A;
-  box-shadow: 0 0 10px rgba(196,163,90,0.6);
+  background: var(--gold);
+  box-shadow: 0 0 10px rgba(196,163,90,0.7);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.hotspot:hover .hotspot__dot {
+  transform: scale(1.3);
+  box-shadow: 0 0 18px rgba(196,163,90,0.9);
 }
 
-/* ─── HOTSPOT PANEL ───────────────────────── */
+/* ─────────────────────────────────────────
+   HOTSPOT PANEL
+───────────────────────────────────────── */
 .hotspot-panel {
   position: fixed;
   top: var(--nav-h);
@@ -413,7 +579,7 @@ button { cursor: pointer; border: none; background: none; }
   bottom: 0;
   width: 400px;
   max-width: 92vw;
-  background: rgba(12,22,14,0.97);
+  background: rgba(10,20,12,0.97);
   border-left: 1px solid rgba(196,163,90,0.2);
   backdrop-filter: blur(20px);
   z-index: 80;
@@ -422,39 +588,40 @@ button { cursor: pointer; border: none; background: none; }
   overflow-y: auto;
 }
 .hotspot-panel.open { transform: translateX(0); }
+.hotspot-panel[aria-hidden="true"] { pointer-events: none; }
 
 .panel-close {
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.6;
+  opacity: 0.55;
   transition: opacity 0.2s;
 }
 .panel-close:hover { opacity: 1; }
-.panel-close img { width: 18px; height: 18px; }
+.panel-close img { width: 16px; height: 16px; }
 
-.panel-content { padding: 56px 32px 48px; }
-.panel-chapter { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #C4A35A; margin-bottom: 10px; }
-.panel-title { font-family: Georgia, serif; font-size: 1.6rem; font-weight: 400; color: #F0EDE6; margin-bottom: 18px; line-height: 1.2; }
-.panel-body { font-size: 0.95rem; line-height: 1.8; color: rgba(240,237,230,0.72); }
+.panel-content { padding: 52px 30px 44px; }
+.panel-chapter  { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+.panel-title    { font-family: 'Ubuntu', serif; font-size: 1.5rem; font-weight: 500; font-style: italic; color: var(--text); margin-bottom: 16px; line-height: 1.25; }
+.panel-body     { font-size: 0.93rem; line-height: 1.8; color: rgba(240,237,230,0.72); }
 .panel-body p + p { margin-top: 0.9em; }
 
-/* ─── NAV BAR ─────────────────────────────── */
+/* ─────────────────────────────────────────
+   NAVIGATION BAR
+───────────────────────────────────────── */
 .story-nav {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 0; left: 0; right: 0;
   height: var(--nav-h);
   z-index: 70;
-  background: rgba(10,20,12,0.85);
+  background: rgba(8,16,10,0.88);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(196,163,90,0.15);
+  border-bottom: 1px solid rgba(196,163,90,0.12);
   opacity: 0;
   transform: translateY(-100%);
   transition: opacity 0.5s, transform 0.5s var(--ease-out);
@@ -462,7 +629,7 @@ button { cursor: pointer; border: none; background: none; }
 .story-nav.visible { opacity: 1; transform: translateY(0); }
 
 .story-nav__inner {
-  max-width: 800px;
+  max-width: 860px;
   margin: 0 auto;
   height: 100%;
   display: flex;
@@ -471,76 +638,108 @@ button { cursor: pointer; border: none; background: none; }
   padding: 0 24px;
 }
 
-.story-nav__dots { display: flex; align-items: center; gap: 6px; flex: 1; }
-
+.nav-dots {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 0;
+}
 .nav-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.2);
-  border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.18);
+  border: 1.5px solid rgba(255,255,255,0.22);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s var(--ease-out);
   flex-shrink: 0;
 }
-.nav-dot.active  { background: #C4A35A; border-color: #C4A35A; transform: scale(1.4); }
-.nav-dot.visited { background: rgba(196,163,90,0.5); border-color: rgba(196,163,90,0.5); }
-.nav-dot-line { flex: 1; height: 1px; background: rgba(255,255,255,0.1); min-width: 12px; }
+.nav-dot:hover  { border-color: var(--gold); }
+.nav-dot.active { background: var(--gold); border-color: var(--gold); transform: scale(1.45); }
+.nav-dot.visited{ background: rgba(196,163,90,0.45); border-color: rgba(196,163,90,0.45); }
+.nav-dot-line   { flex: 1; height: 1px; background: rgba(255,255,255,0.08); min-width: 10px; }
 
-.story-nav__progress {
-  width: 100px;
+.nav-progress {
+  width: 90px;
   height: 2px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.08);
   border-radius: 2px;
   overflow: hidden;
 }
-.story-nav__fill {
+.nav-progress__fill {
   height: 100%;
-  background: #C4A35A;
+  background: var(--gold);
   width: 0%;
   transition: width 0.1s linear;
 }
 
-.story-nav__label {
+.nav-label {
   font-size: 11px;
-  color: #C4A35A;
+  font-weight: 500;
+  color: var(--gold);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  min-width: 100px;
+  min-width: 110px;
   text-align: right;
 }
 
-/* ─── AUDIO TOGGLE ────────────────────────── */
+/* ─────────────────────────────────────────
+   AUDIO TOGGLE
+───────────────────────────────────────── */
 .audio-toggle {
   position: fixed;
-  bottom: 28px;
-  right: 28px;
+  bottom: 24px;
+  right: 24px;
   z-index: 200;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: rgba(255,255,255,0.65);
   backdrop-filter: blur(10px);
-  color: rgba(255,255,255,0.7);
   transition: background 0.2s;
 }
-.audio-toggle svg { width: 18px; height: 18px; }
-.audio-toggle:hover { background: rgba(196,163,90,0.2); }
+.audio-toggle:hover { background: rgba(196,163,90,0.18); }
+.audio-toggle svg { width: 17px; height: 17px; }
 
-/* ─── UTILITIES ───────────────────────────── */
-@keyframes spin {
+/* ─────────────────────────────────────────
+   KEYFRAMES
+───────────────────────────────────────── */
+@keyframes spin-cw {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
 
-/* ─── RESPONSIVE ──────────────────────────── */
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
 @media (max-width: 768px) {
-  :root { --gear-full: 300px; --gear-small: 180px; }
-  .hotspot-panel { width: 100vw; top: auto; bottom: 0; height: 70vh; border-left: none; border-top: 1px solid rgba(196,163,90,0.2); border-radius: 16px 16px 0 0; transform: translateY(100%); }
+  :root {
+    --gear-full:   300px;
+    --gear-small:  180px;
+    --gear-loader: 60px;
+  }
+  .landing__title-line1 { font-size: 28pt; }
+  .landing__title-line2 { font-size: 60pt; }
+  .landing__subtitle    { font-size: 14px; }
+  .hotspot-panel {
+    width: 100vw;
+    top: auto;
+    height: 68vh;
+    border-left: none;
+    border-top: 1px solid rgba(196,163,90,0.2);
+    border-radius: 14px 14px 0 0;
+    transform: translateY(100%);
+  }
   .hotspot-panel.open { transform: translateY(0); }
-  .drive-btn { bottom: calc(var(--track-h) + 80px); padding: 14px 32px; font-size: 0.95rem; }
+}
+
+@media (max-width: 480px) {
+  .landing__title-line1 { font-size: 22pt; }
+  .landing__title-line2 { font-size: 48pt; }
+  .drive-btn { padding: 13px 36px; font-size: 0.88rem; }
 }
