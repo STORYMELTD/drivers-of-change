@@ -333,6 +333,9 @@
         }
       });
 
+      if (layer.type === 'sway') {
+        gsap.to(el, { rotation: 1.5, repeat: -1, yoyo: true, duration: 3 + Math.random() * 2, ease: 'sine.inOut', delay: Math.random() * 2, transformOrigin: '50% 100%' });
+      }
       if (layer.type === 'float') {
         gsap.to(el, {
           y: -(8 + Math.random() * 6), repeat: -1, yoyo: true,
