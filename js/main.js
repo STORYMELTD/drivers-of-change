@@ -381,6 +381,19 @@
     const idx = getChapterAt(progress);
     if (idx !== S.currentChapter) setChapter(idx);
     updateHotspots(progress);
+    lazyLoadLayers(progress);
+  }
+
+  function lazyLoadLayers(progress) {
+    var loadAhead = 0.15;
+    D.muralLayers.querySelectorAll('.mural-layer').forEach(function(img) {
+      var trigger = parseFloat(img.dataset.trigger || 0);
+      var dataSrc = img.dataset.src;
+      if (!dataSrc) return;
+      if (progress >= (trigger - loadAhead) && !img.src) {
+        img.src = dataSrc;
+      }
+    });
   }
 
   function getChapterAt(p) {
@@ -426,10 +439,11 @@
     STORY_DATA.layers.forEach(layer => {
       const img = document.createElement('img');
       img.className          = 'mural-layer';
-      img.src                = layer.src;
+      img.setAttribute('data-src', layer.src);
       img.alt                = '';
       img.setAttribute('aria-hidden', 'true');
       img.dataset.layerId    = layer.id;
+      img.dataset.trigger    = layer.triggerAt || 0;
       img.style.position     = 'absolute';
       img.style.top          = '0';
       img.style.left         = '0';
