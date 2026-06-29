@@ -103,17 +103,39 @@
       }, 350);
     }
 
-    // Preload all assets and track real progress
-    assets.forEach(function(src) {
-      var img = new Image();
-      img.onerror = updateProgress;
-      if (src.indexOf('gear track') !== -1) {
-        img.onload = function() { S.trackImgEl = img; drawTrack(); updateProgress(); };
-      } else {
-        img.onload = updateProgress;
+    // Preload in batches of 10 to avoid freezing browser
+    var batchSize = 10;
+    var index = 0;
+
+    function loadBatch() {
+      var end = Math.min(index + batchSize, assets.length);
+      var batchDone = 0;
+      var batchTotal = end - index;
+
+      for (var i = index; i < end; i++) {
+        (function(src) {
+          var img = new Image();
+          var finish = function() {
+            if (src.indexOf('gear track') !== -1 && img.complete) {
+              S.trackImgEl = img; drawTrack();
+            }
+            updateProgress();
+            batchDone++;
+            if (batchDone >= batchTotal) {
+              index += batchSize;
+              if (index < assets.length) {
+                setTimeout(loadBatch, 50);
+              }
+            }
+          };
+          img.onload = finish;
+          img.onerror = finish;
+          img.src = src;
+        })(assets[i]);
       }
-      img.src = src;
-    });
+    }
+
+    loadBatch();
   }
 
   // ══════════════════════════════════════════
