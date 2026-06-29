@@ -390,7 +390,7 @@
       var trigger = parseFloat(img.dataset.trigger || 0);
       var dataSrc = img.dataset.src;
       if (!dataSrc) return;
-      if (progress >= (trigger - loadAhead) && !img.src) {
+      if (progress >= (trigger - loadAhead) && img.src !== dataSrc) {
         img.src = dataSrc;
       }
     });
