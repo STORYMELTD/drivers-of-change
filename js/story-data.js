@@ -15,7 +15,7 @@ const STORY_DATA = {
   mural: {
     naturalWidth:  15000,
     naturalHeight: 1900,
-    src: 'assets/images/DoC-Layers/%D8%A7%D9%84%D9%84%D9%88%D8%AD%D8%A9%20%D9%83%D8%A7%D9%85%D9%84%D8%A9.jpg',
+    src: 'assets/images/DoC mural.jpg',
     srcFallback: 'assets/images/mural-placeholder.svg',
   },
 
