@@ -181,6 +181,7 @@
       document.body.style.overflow = '';
       window.scrollTo({ top: 0 });
       buildLayers();
+      scaleMural();
       initScrollEngine();
     }, 600);
   }
