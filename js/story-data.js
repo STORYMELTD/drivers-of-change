@@ -161,7 +161,7 @@ const STORY_DATA = {
   //
   // triggerAt: scroll progress (0-1) when layer fades in (0 = always visible)
 
-  layers: [
+  layers: [/* DISABLED */
 
     // ── BACKGROUND & SKY (bottom layers) ──
     { id: 'l182-bg',       src: 'assets/images/DoC-Layers/DoC_LayersMap_0182_Background.png',         type: 'static',   depth: 1.0,  zIndex: 1,   triggerAt: 0 },
