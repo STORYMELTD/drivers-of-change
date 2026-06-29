@@ -93,7 +93,7 @@
   // ══════════════════════════════════════════
   // SCREEN 1 — LOADER
   // ══════════════════════════════════════════
-  function runLoader() {
+  function runLoader() { // v7
     const start  = Date.now();
     const MIN_MS = 2800;
 
