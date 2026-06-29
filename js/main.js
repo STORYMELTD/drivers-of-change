@@ -77,37 +77,43 @@
   // Runs on its own timer — does NOT wait for mural to load
   // ══════════════════════════════════════════
   function runLoader() {
-    const start  = Date.now();
-    const MIN_MS = 2800;
-
     // Position gear at Illustrator convergence point
     D.loaderGearWrap.style.left = ((IL_GEAR_X / IL_CANVAS_W) * 100) + '%';
     D.loaderGearWrap.style.top  = ((IL_GEAR_Y / IL_CANVAS_H) * 100) + '%';
 
-    // Animate % counter independently
-    let pct = 0;
-    const ticker = setInterval(() => {
-      pct = Math.min(pct + (Math.random() * 9 + 2), 94);
-      if (D.loaderPct) D.loaderPct.textContent = Math.round(pct) + '%';
-    }, 100);
+    // Build full asset list: track + all layers
+    var assets = ['assets/images/gear track long-01.png'];
+    STORY_DATA.layers.forEach(function(layer) { assets.push(layer.src); });
 
-    // Preload mural + track in background (non-blocking)
-    const muralImg = new Image();
-    muralImg.src = D.muralImg.src;
+    var total = assets.length;
+    var loaded = 0;
 
-    const trackImg = new Image();
-    trackImg.src = 'assets/images/gear track long-01.png';
-    trackImg.onload = () => { S.trackImgEl = trackImg; drawTrack(); };
+    function updateProgress() {
+      loaded++;
+      var pct = Math.round((loaded / total) * 100);
+      if (D.loaderPct) D.loaderPct.textContent = pct + '%';
+      if (loaded >= total) done();
+    }
 
-    // Loader completes after MIN_MS regardless of asset loading
-    setTimeout(() => {
-      clearInterval(ticker);
+    function done() {
       if (D.loaderPct) D.loaderPct.textContent = '100%';
-      setTimeout(() => {
+      setTimeout(function() {
         D.loader.classList.add('out');
         S.phase = 'landing';
       }, 350);
-    }, MIN_MS);
+    }
+
+    // Preload all assets and track real progress
+    assets.forEach(function(src) {
+      var img = new Image();
+      img.onerror = updateProgress;
+      if (src.indexOf('gear track') !== -1) {
+        img.onload = function() { S.trackImgEl = img; drawTrack(); updateProgress(); };
+      } else {
+        img.onload = updateProgress;
+      }
+      img.src = src;
+    });
   }
 
   // ══════════════════════════════════════════
