@@ -404,7 +404,7 @@
     // Reveal container — positions already correct at x=0 for progress=0
     D.muralLayers.style.visibility = 'visible';
 
-    STORY_DATA.layers.forEach(layer => {
+    //STORY_DATA.layers.forEach(layer => {
       const el = D.muralLayers.querySelector(`[data-layer-id="${layer.id}"]`);
       if (!el) return;
 
@@ -551,7 +551,7 @@
 
   // ── BUILD: LAYERS ──────────────────────────
   function buildLayers() {
-    STORY_DATA.layers.forEach(layer => {
+    //STORY_DATA.layers.forEach(layer => {
       const img = document.createElement('img');
       img.className           = 'mural-layer';
       img.src                 = layer.src;
