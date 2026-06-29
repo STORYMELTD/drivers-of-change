@@ -4,7 +4,7 @@
  * East Jerusalem · 2022–2025
  */
 
-const STORY_DATA = {
+const STORY_DATA = { // LAYERS_DISABLED // LAYERS_DISABLED
 
   mural: {
     naturalWidth:  15000,
@@ -343,148 +343,7 @@ const STORY_DATA = {
   // ── ANIMATED LAYERS ──────────────────────────────
   // All files are in assets/images/DoC-Layers/
   // Arabic filenames are URL-encoded below
-  layers: [
-    {
-      id: 'sky',
-      src: 'assets/images/DoC-Layers/%D8%B3%D9%85%D8%A7%D8%A1_.png',
-      label: 'السماء — Sky',
-      type: 'parallax',
-      depth: 0.15,   // very slow — sky barely moves
-      zIndex: 1,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0,
-    },
-    {
-      id: 'building-shadows',
-      src: 'assets/images/DoC-Layers/%D8%B8%D9%84%20%D9%85%D8%A8%D8%A7%D9%86%D9%8A_.png',
-      label: 'ظل مباني — Building Shadows',
-      type: 'parallax',
-      depth: 0.4,
-      zIndex: 2,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0,
-    },
-    {
-      id: 'cactus',
-      src: 'assets/images/DoC-Layers/%D8%B5%D8%A8%D8%A7%D8%B1_.png',
-      label: 'صبار — Cactus',
-      type: 'parallax',
-      depth: 0.6,
-      zIndex: 3,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0,
-    },
-    {
-      id: 'cactus-face',
-      src: 'assets/images/DoC-Layers/%D8%AC%D9%87%D8%A9%20%D8%A7%D9%84%D8%B5%D8%A8%D8%B1%D8%A9_.png',
-      label: 'جهة الصبرة — Cactus Face',
-      type: 'parallax',
-      depth: 0.6,
-      zIndex: 4,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0,
-    },
-    {
-      id: 'cypress-tree',
-      src: 'assets/images/DoC-Layers/%D8%B4%D8%AC%D8%B1%D8%A9%20%D8%B3%D8%B1%D9%88_.png',
-      label: 'شجرة سرو — Cypress Tree',
-      type: 'float',
-      depth: 0.7,
-      zIndex: 5,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0,
-    },
-    {
-      id: 'plant-near-buildings',
-      src: 'assets/images/DoC-Layers/%D9%86%D8%A8%D8%A7%D8%AA%20%D8%B9%D9%86%D8%AF%20%D9%85%D8%A8%D8%A7%D9%86%D9%8A%2019.png',
-      label: 'نبات عند مباني — Plant near Buildings',
-      type: 'parallax',
-      depth: 0.65,
-      zIndex: 5,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0.1,
-    },
-    {
-      id: 'plant-behind-girl',
-      src: 'assets/images/DoC-Layers/%D9%86%D8%A8%D8%AA%D8%A9%20%D8%AE%D9%84%D9%81%20%D8%A7%D9%84%D8%A8%D9%86%D8%AA_.png',
-      label: 'نبتة خلف البنت — Plant behind Girl',
-      type: 'float',
-      depth: 0.7,
-      zIndex: 6,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0.3,
-    },
-    {
-      id: 'chain-plant-1',
-      src: 'assets/images/DoC-Layers/%D9%86%D8%A8%D8%AA%D8%A9%20%D9%81%D9%8A%20%D8%A7%D9%84%D8%B3%D9%86%D8%B3%D9%84%D8%A9%20%D8%A7%D9%84%D8%A7%D9%88%D9%84%D8%A9_.png',
-      label: 'نبتة في السنسلة الاولة — Plant in First Chain',
-      type: 'float',
-      depth: 0.8,
-      zIndex: 7,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0.4,
-    },
-    {
-      id: 'chain-plant-2',
-      src: 'assets/images/DoC-Layers/%D9%86%D8%A8%D8%AA%D8%A9%20%D9%81%D9%8A%20%D8%A7%D9%84%D8%B3%D9%86%D8%B3%D9%84%D8%A9%20%D8%A7%D9%84%D8%AB%D8%A7%D9%86%D9%8A%D8%A9_.png',
-      label: 'نبتة في السنسلة الثانية — Plant in Second Chain',
-      type: 'float',
-      depth: 0.8,
-      zIndex: 7,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0.5,
-    },
-    {
-      id: 'girl-hand',
-      src: 'assets/images/DoC-Layers/%D9%8A%D8%AF%20%D8%A7%D9%84%D8%A8%D9%86%D8%AA%20%D8%A7%D9%84%D9%8A%20%D8%A8%D8%AA%D8%AE%D9%8A%D8%B7%20%D8%A7%D9%84%D9%8A%D8%AF_.png',
-      label: 'يد البنت — Girl\'s Sewing Hand',
-      type: 'fade-in',
-      depth: 0.9,
-      zIndex: 8,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0.45,
-    },
-    {
-      id: 'rope-1',
-      src: 'assets/images/DoC-Layers/%D8%AD%D8%A8%D9%84%D8%A9%20%D8%A7%D9%84%D8%A7%D9%88%D9%84%D8%A9_.png',
-      label: 'حبلة الاولة — First Rope',
-      type: 'parallax',
-      depth: 0.85,
-      zIndex: 8,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0.35,
-    },
-    {
-      id: 'basket-2',
-      src: 'assets/images/DoC-Layers/%D8%B3%D9%84%D8%A9%20%D8%A7%D9%84%D8%AB%D8%A7%D9%86%D9%8A%D8%A9_.png',
-      label: 'سلة الثانية — Second Basket',
-      type: 'float',
-      depth: 0.85,
-      zIndex: 8,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0.55,
-    },
-    {
-      id: 'to-chain',
-      src: 'assets/images/DoC-Layers/%D8%A7%D9%84%D9%89%20%D8%A7%D9%84%D8%B3%D9%86%D8%B3%D9%84%D8%A9.png',
-      label: 'الى السنسلة — To the Chain',
-      type: 'parallax',
-      depth: 0.9,
-      zIndex: 9,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0.6,
-    },
-    {
-      id: 'layer-71',
-      src: 'assets/images/DoC-Layers/Layer%2071.png',
-      label: 'Layer 71',
-      type: 'parallax',
-      depth: 0.75,
-      zIndex: 6,
-      position: { left: 0, top: 0, width: '100%', height: '100%' },
-      triggerAt: 0,
-    },
-  ],
+  layers: [],
 
   audio: {
     ambient: {
