@@ -746,5 +746,11 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 
 /* Force all individual layers invisible until GSAP reveals them */
 .mural-layer {
-  opacity: 0 !important;
+  opacity: 0;
+}
+
+/* All layers start invisible — GSAP reveals them */
+.mural-layers .mural-layer {
+  opacity: 0;
+  visibility: hidden;
 }
