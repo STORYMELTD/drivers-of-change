@@ -124,10 +124,13 @@
     }
 
     // Preload mural + track
+    // Preload mural in background (do not block loader)
     const muralImg = new Image();
-    muralImg.onload  = done;
-    muralImg.onerror = done;
-    muralImg.src     = D.muralImg.src;
+    
+    
+    muralImg.src = D.muralImg.src;
+    // Loader runs on timer only
+    setTimeout(done, 100);
 
     // Also preload track tile
     const trackImg = new Image();
