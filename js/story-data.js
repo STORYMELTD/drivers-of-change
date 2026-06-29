@@ -1,11 +1,12 @@
 /**
- * DRIVERS OF CHANGE — Story Data v2
+ * DRIVERS OF CHANGE — Story Data v3
  * Pengon / Friends of the Earth Palestine
  * East Jerusalem · 2022–2025
  *
- * Layer assembly: 183 layers from PSD, numbered 0000-0182
- * Photoshop exports top→bottom, so 0000 = topmost PS layer
- * In CSS/HTML we reverse: 0182 (Background) = z-index 1, 0000 = z-index 183
+ * LAYER ARCHITECTURE DECISION:
+ * All full-canvas layers use depth: 1.0 (move exactly with mural).
+ * No horizontal parallax offset — preserves composition at all screen sizes.
+ * Depth/life expressed through: float, sway, fade-in, scale animations only.
  */
 
 const STORY_DATA = {
@@ -23,7 +24,7 @@ const STORY_DATA = {
       scrollStart: 0, scrollEnd: 0.14, color: '#C4A35A',
       body: [
         'Environmental problems in East Jerusalem are not only technical failures.',
-        'A missed waste-collection route, an overflowing sewage line, a street without proper infrastructure — all point to unequal planning, unequal budgets, and unequal access to environmental rights.',
+        'A missed waste-collection route, an overflowing sewage line, a neighborhood without green space — all point to unequal planning, unequal budgets, and unequal access to environmental rights.',
       ]
     },
     {
@@ -148,193 +149,517 @@ const STORY_DATA = {
     },
   ],
 
-  // ── LAYER ASSEMBLY ──────────────────────────────────────────────────
-  // All layers are full canvas (15000×1900px) with transparency.
-  // They stack exactly as in Photoshop — 0182=bottom, 0000=top.
-  // zIndex: 0182→1, 0000→183 (reversed from export number)
+  // ── LAYER ASSEMBLY ─────────────────────────────────────────────────
+  //
+  // ARCHITECTURE RULE: depth is always 1.0 for full-canvas layers.
+  // No horizontal parallax — composition must hold at all screen sizes.
+  // Life comes from: float, sway, fade-in animations ONLY.
   //
   // Animation types:
-  //   'static'   — no movement beyond base mural pan
-  //   'parallax' — moves at depth × base speed (depth<1=far, depth>1=close)
-  //   'float'    — parallax + gentle vertical oscillation
-  //   'sway'     — gentle left-right oscillation (trees, plants)
+  //   'static'  — no animation, moves exactly with mural
+  //   'float'   — gentle vertical oscillation (plants, flowers, birds)
+  //   'sway'    — gentle rotation oscillation (cypress trees)
+  //   'fade-in' — appears at triggerAt scroll position
+  //   'pulse'   — subtle scale breathing (key characters)
   //
-  // triggerAt: scroll progress (0-1) when layer fades in (0 = always visible)
+  // triggerAt: 0 = visible from start, 0.x = fades in at that scroll point
+  // zIndex:    higher = closer to viewer
+  // depth:     ALWAYS 1.0 — do not change
 
   layers: [
 
-    // ── BACKGROUND & SKY (bottom layers) ──
-    { id: 'l182-bg',       src: 'assets/images/DoC-Layers/DoC_LayersMap_0182_Background.png',         type: 'static',   depth: 1.0,  zIndex: 1,   triggerAt: 0 },
-    { id: 'l180-sky',      src: 'assets/images/DoC-Layers/DoC_LayersMap_0180_%D8%B3%D9%85%D8%A7%D8%A1-.png', type: 'parallax', depth: 0.3,  zIndex: 2,   triggerAt: 0 },
-    { id: 'l181-bld-shad', src: 'assets/images/DoC-Layers/DoC_LayersMap_0181_%D8%B8%D9%84-%D9%85%D8%A8%D8%A7%D9%86%D9%8A-.png', type: 'parallax', depth: 0.5, zIndex: 3, triggerAt: 0 },
+    // ── BACKGROUND & SKY ──────────────────────────────────────────
+    { id: 'l182-bg',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0182_Background.png',
+      type: 'static', depth: 1.0, zIndex: 1, triggerAt: 0 },
 
-    // ── DOME OF THE ROCK & MOSQUE (key landmarks) ──
-    { id: 'l170-dome',     src: 'assets/images/DoC-Layers/DoC_LayersMap_0170_%D9%82%D8%A8%D8%A9-%D8%A7%D9%84%D8%B5%D8%AE%D8%B1%D8%A9-.png', type: 'parallax', depth: 0.55, zIndex: 10, triggerAt: 0 },
-    { id: 'l161-mosque',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0161_%D9%85%D8%B3%D8%AC%D8%AF-%D8%A7%D9%84%D9%82%D8%A8%D9%84%D9%8A-.png', type: 'parallax', depth: 0.6, zIndex: 15, triggerAt: 0 },
-    { id: 'l160-trees-dome', src: 'assets/images/DoC-Layers/DoC_LayersMap_0160_%D8%B4%D8%AC%D8%B1-%D8%B9%D9%86%D8%AF-%D9%82%D8%A8%D8%A9-%D8%A7%D9%84%D8%B5%D8%AE%D8%B1%D8%A9-.png', type: 'parallax', depth: 0.65, zIndex: 16, triggerAt: 0 },
+    { id: 'l180-sky',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0180_%D8%B3%D9%85%D8%A7%D8%A1-.png',
+      type: 'static', depth: 1.0, zIndex: 2, triggerAt: 0 },
 
-    // ── BACKGROUND BUILDINGS (far distance) ──
-    { id: 'l179-bld10',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0179_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-10-.png',  type: 'parallax', depth: 0.5, zIndex: 20, triggerAt: 0 },
-    { id: 'l178-bld2',    src: 'assets/images/DoC-Layers/DoC_LayersMap_0178_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D8%B1%D9%82%D9%85-2-.png', type: 'parallax', depth: 0.5, zIndex: 21, triggerAt: 0 },
-    { id: 'l177-corner',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0177_%D8%A7%D9%84%D8%B2%D8%A7%D9%88%D9%8A%D8%A9-%D9%81%D9%88%D9%82-1-.png', type: 'parallax', depth: 0.52, zIndex: 22, triggerAt: 0 },
-    { id: 'l176-bld12',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0176_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-12-.png',  type: 'parallax', depth: 0.52, zIndex: 23, triggerAt: 0 },
-    { id: 'l175-bld7',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0175_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-7-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D9%85%D8%B3%D8%AC%D8%AF-%D8%A7%D9%84%D9%82%D8%A8%D9%84%D9%8A-.png', type: 'parallax', depth: 0.54, zIndex: 24, triggerAt: 0 },
-    { id: 'l174-bld-first', src: 'assets/images/DoC-Layers/DoC_LayersMap_0174_%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D9%81%D9%8A-%D8%A7%D9%84%D8%A7%D9%88%D9%84-%D8%AA%D8%AD%D8%AA-%D8%B1%D9%82%D9%85-1.png', type: 'parallax', depth: 0.54, zIndex: 25, triggerAt: 0 },
-    { id: 'l173-bld9',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0173_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-9.png',     type: 'parallax', depth: 0.55, zIndex: 26, triggerAt: 0 },
-    { id: 'l172-bld-shad2', src: 'assets/images/DoC-Layers/DoC_LayersMap_0172_%D8%B8%D9%84-%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-.png', type: 'parallax', depth: 0.55, zIndex: 27, triggerAt: 0 },
-    { id: 'l171-bld8',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0171_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-8-.png',    type: 'parallax', depth: 0.56, zIndex: 28, triggerAt: 0 },
-    { id: 'l169-l2',     src: 'assets/images/DoC-Layers/DoC_LayersMap_0169_Layer-2.png',                              type: 'parallax', depth: 0.56, zIndex: 29, triggerAt: 0 },
+    { id: 'l181-bld-shadow',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0181_%D8%B8%D9%84-%D9%85%D8%A8%D8%A7%D9%86%D9%8A-.png',
+      type: 'static', depth: 1.0, zIndex: 3, triggerAt: 0 },
 
-    // ── GROUND & ROAD ──
-    { id: 'l164-ground',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0164_%D8%A7%D9%84%D8%A7%D8%B1%D8%B6%D9%8A%D8%A9-.png', type: 'static', depth: 1.0, zIndex: 30, triggerAt: 0 },
-    { id: 'l163-road',    src: 'assets/images/DoC-Layers/DoC_LayersMap_0163_%D8%A7%D9%84%D8%B7%D8%B1%D9%8A%D9%82-%D8%A7%D9%84%D8%A7%D8%B5%D9%81%D8%A4-.png', type: 'parallax', depth: 0.9, zIndex: 31, triggerAt: 0 },
+    // ── DOME OF THE ROCK & MOSQUE ──────────────────────────────────
+    { id: 'l170-dome',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0170_%D9%82%D8%A8%D8%A9-%D8%A7%D9%84%D8%B5%D8%AE%D8%B1%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 10, triggerAt: 0 },
 
-    // ── MID BUILDINGS ──
-    { id: 'l167-bld5',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0167_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-5.png',    type: 'parallax', depth: 0.65, zIndex: 35, triggerAt: 0 },
-    { id: 'l165-bld6',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0165_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-6.png',    type: 'parallax', depth: 0.65, zIndex: 36, triggerAt: 0 },
-    { id: 'l162-bld-gear', src: 'assets/images/DoC-Layers/DoC_LayersMap_0162_%D9%85%D8%A8%D9%86%D8%A9-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3-.png', type: 'parallax', depth: 0.67, zIndex: 37, triggerAt: 0 },
-    { id: 'l159-bld-row4', src: 'assets/images/DoC-Layers/DoC_LayersMap_0159_%D8%B5%D9%81-%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D8%B1%D9%82%D9%85-4-.png', type: 'parallax', depth: 0.67, zIndex: 38, triggerAt: 0 },
-    { id: 'l158-bld-gear2', src: 'assets/images/DoC-Layers/DoC_LayersMap_0158_%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3-.png', type: 'parallax', depth: 0.68, zIndex: 39, triggerAt: 0 },
-    { id: 'l156-bld13',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0156_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-13.png',   type: 'parallax', depth: 0.68, zIndex: 40, triggerAt: 0 },
-    { id: 'l133-bld17',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0133_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-17.png',   type: 'parallax', depth: 0.70, zIndex: 41, triggerAt: 0 },
-    { id: 'l132-bld-doors', src: 'assets/images/DoC-Layers/DoC_LayersMap_0132_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%A7%D8%A8%D9%88%D8%A7%D8%A8-%D8%A7%D9%84%D8%AB%D9%84%D8%A7%D8%AB%D8%A9-.png', type: 'parallax', depth: 0.70, zIndex: 42, triggerAt: 0 },
-    { id: 'l129-bld21',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0129_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-21-.png',  type: 'parallax', depth: 0.72, zIndex: 43, triggerAt: 0 },
-    { id: 'l080-bld15',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0080_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-15.png',  type: 'parallax', depth: 0.72, zIndex: 44, triggerAt: 0 },
-    { id: 'l079-bld16',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0079_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-16.png',  type: 'parallax', depth: 0.73, zIndex: 45, triggerAt: 0 },
-    { id: 'l076-bld19',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0076_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-19.png',  type: 'parallax', depth: 0.73, zIndex: 46, triggerAt: 0 },
-    { id: 'l075-bld14',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0075_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-14.png',  type: 'parallax', depth: 0.74, zIndex: 47, triggerAt: 0 },
-    { id: 'l074-bld20',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0074_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-20-.png', type: 'parallax', depth: 0.74, zIndex: 48, triggerAt: 0 },
-    { id: 'l073-bld18',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0073_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-18.png',  type: 'parallax', depth: 0.75, zIndex: 49, triggerAt: 0 },
-    { id: 'l064-bld-fountain', src: 'assets/images/DoC-Layers/DoC_LayersMap_0064_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D9%85%D8%B4%D8%B1%D8%A8-11.png', type: 'parallax', depth: 0.75, zIndex: 50, triggerAt: 0 },
-    { id: 'l022-bld-gear3', src: 'assets/images/DoC-Layers/DoC_LayersMap_0022_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D8%AA%D8%AD%D8%AA-3--%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3-%D9%81%D9%8A-%D8%A8%D8%AF%D8%A7%D9%8A%D8%A9-.png', type: 'parallax', depth: 0.76, zIndex: 51, triggerAt: 0 },
-    { id: 'l021-bld-vendor', src: 'assets/images/DoC-Layers/DoC_LayersMap_0021_%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-3-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%A8%D9%8A%D8%A7%D8%B9-.png', type: 'parallax', depth: 0.76, zIndex: 52, triggerAt: 0 },
+    { id: 'l161-mosque',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0161_%D9%85%D8%B3%D8%AC%D8%AF-%D8%A7%D9%84%D9%82%D8%A8%D9%84%D9%8A-.png',
+      type: 'static', depth: 1.0, zIndex: 11, triggerAt: 0 },
 
-    // ── WALLS & STRUCTURAL ELEMENTS ──
-    { id: 'l061-wall-long', src: 'assets/images/DoC-Layers/DoC_LayersMap_0061_%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D9%84%D8%B7%D9%88%D9%8A%D9%84-.png', type: 'parallax', depth: 0.8, zIndex: 60, triggerAt: 0 },
-    { id: 'l063-wall-fountain', src: 'assets/images/DoC-Layers/DoC_LayersMap_0063_%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D9%85%D8%B4%D8%B1%D8%A8-%D9%88-%D8%A8%D8%AC%D8%A7%D9%86%D8%A8-%D8%A7%D9%84%D8%A8%D8%A7%D8%A8-.png', type: 'parallax', depth: 0.8, zIndex: 61, triggerAt: 0 },
-    { id: 'l062-door-yellow', src: 'assets/images/DoC-Layers/DoC_LayersMap_0062_%D8%A7%D9%84%D8%A8%D8%A7%D8%A8-%D8%A7%D9%84%D8%A7%D8%B5%D9%81%D8%B1-%D9%81%D9%8A-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D9%85%D8%A7%D8%A1-.png', type: 'parallax', depth: 0.82, zIndex: 62, triggerAt: 0 },
-    { id: 'l024-wall-gear', src: 'assets/images/DoC-Layers/DoC_LayersMap_0024_%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D9%81%D9%8A-%D8%A7%D9%84%D8%A8%D8%AF%D8%A7%D9%8A%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3.png', type: 'static', depth: 1.0, zIndex: 63, triggerAt: 0 },
-    { id: 'l154-wall-mosque', src: 'assets/images/DoC-Layers/DoC_LayersMap_0154_%D8%AC%D8%AF%D8%A7%D8%B1-%D9%82%D8%AF%D8%A7%D9%85-%D8%A7%D9%84%D8%AC%D8%A7%D9%85%D8%B9--%D9%88%D8%B9%D9%84%D9%8A-%D9%84%D9%81%D8%AA%D8%A9-%D8%A8%D9%8A%D8%B6%D8%A7%D8%A1--.png', type: 'parallax', depth: 0.78, zIndex: 64, triggerAt: 0 },
-    { id: 'l155-three-doors', src: 'assets/images/DoC-Layers/DoC_LayersMap_0155_%D8%AB%D9%84%D8%A7%D8%AB-%D8%A7%D8%A8%D9%88%D8%A8-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D8%B4%D8%A8%D8%A7%D8%A8-.png', type: 'parallax', depth: 0.82, zIndex: 65, triggerAt: 0 },
-    { id: 'l152-arches',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0152_%D8%A7%D9%82%D9%88%D8%A7%D8%B3-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D9%85%D8%B3%D8%AC%D8%AF-%D8%A7%D9%84%D9%82%D8%A8%D9%84%D9%8A--4-.png', type: 'parallax', depth: 0.82, zIndex: 66, triggerAt: 0 },
-    { id: 'l091-wall-basket', src: 'assets/images/DoC-Layers/DoC_LayersMap_0091_%D8%A7%D9%84%D8%AD%D9%8A%D8%B7-%D8%A7%D9%84%D9%8A-%D9%88%D8%B1%D8%A7%D8%A1-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-%D8%A7%D9%84%D9%8A-%D9%85%D8%B9%D9%87%D8%A7-%D8%B5%D9%86%D9%8A%D8%A9-%D9%82%D8%B4-.png', type: 'parallax', depth: 0.84, zIndex: 67, triggerAt: 0 },
-    { id: 'l078-wall-brown', src: 'assets/images/DoC-Layers/DoC_LayersMap_0078_%D8%A7%D9%84%D8%AD%D9%8A%D8%B7-%D8%A7%D9%84%D8%A8%D9%86%D9%8A-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D9%85%D8%B4%D8%B1%D8%A8-%D8%A8%D9%8A%D9%86-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D9%88-%D8%A7%D9%84%D8%AD%D9%8A%D8%B7-%D8%A7%D9%84%D8%A7%D8%B5%D9%81%D8%B1-.png', type: 'parallax', depth: 0.84, zIndex: 68, triggerAt: 0 },
-    { id: 'l137-wall-red', src: 'assets/images/DoC-Layers/DoC_LayersMap_0137_%D8%AC%D8%AF%D8%A7%D8%B1-%D8%A7%D8%AD%D9%85%D8%B1-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%AD%D9%8A%D8%B7-%D8%A7%D9%84%D9%8A-%D8%B9%D9%84%D9%8A%D9%87-%D9%82%D9%86%D8%A7%D9%86%D9%8A-%D8%A8%D9%84%D8%A7%D8%B3%D8%AA%D9%8A%D9%83-%D9%88-%D9%81%D9%88%D9%82%D9%87-%D8%B3%D8%B1%D9%88%D8%A9-.png', type: 'parallax', depth: 0.84, zIndex: 69, triggerAt: 0 },
+    { id: 'l160-trees-dome',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0160_%D8%B4%D8%AC%D8%B1-%D8%B9%D9%86%D8%AF-%D9%82%D8%A8%D8%A9-%D8%A7%D9%84%D8%B5%D8%AE%D8%B1%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 12, triggerAt: 0 },
 
-    // ── CYPRESS TREES (sway gently) ──
-    { id: 'l065-cypress1', src: 'assets/images/DoC-Layers/DoC_LayersMap_0065_%D8%B3%D8%B1%D9%88-.png',           type: 'sway', depth: 0.85, zIndex: 75, triggerAt: 0 },
-    { id: 'l066-cypress2', src: 'assets/images/DoC-Layers/DoC_LayersMap_0066_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%B3%D8%B1%D9%88-.png', type: 'sway', depth: 0.85, zIndex: 76, triggerAt: 0 },
-    { id: 'l067-cypress3', src: 'assets/images/DoC-Layers/DoC_LayersMap_0067_%D8%B3%D8%B1%D9%88.png',            type: 'sway', depth: 0.86, zIndex: 77, triggerAt: 0 },
-    { id: 'l068-cypress4', src: 'assets/images/DoC-Layers/DoC_LayersMap_0068_%D8%B3%D8%B1%D9%88.png',            type: 'sway', depth: 0.86, zIndex: 78, triggerAt: 0 },
-    { id: 'l069-cypress5', src: 'assets/images/DoC-Layers/DoC_LayersMap_0069_%D8%B3%D8%B1%D9%88.png',            type: 'sway', depth: 0.87, zIndex: 79, triggerAt: 0 },
-    { id: 'l070-cypress6', src: 'assets/images/DoC-Layers/DoC_LayersMap_0070_%D8%B3%D8%B1%D9%88-.png',           type: 'sway', depth: 0.87, zIndex: 80, triggerAt: 0 },
-    { id: 'l135-cypress-dome', src: 'assets/images/DoC-Layers/DoC_LayersMap_0135_%D8%B3%D8%B1%D9%88-%D8%B9%D9%86%D8%AF-%D9%82%D8%A8%D8%A9-%D8%A7%D9%84%D8%B5%D8%AE%D8%B1%D8%A9-.png', type: 'sway', depth: 0.65, zIndex: 81, triggerAt: 0 },
+    // ── DISTANT BUILDINGS ──────────────────────────────────────────
+    { id: 'l179-bld10',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0179_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-10-.png',
+      type: 'static', depth: 1.0, zIndex: 20, triggerAt: 0 },
 
-    // ── OLIVE TREES (float gently) ──
-    { id: 'l026-olive-start', src: 'assets/images/DoC-Layers/DoC_LayersMap_0026_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D9%81%D9%8A-%D8%A7%D9%84%D8%A8%D8%AF%D8%A7%D9%8A%D8%A9-.png', type: 'float', depth: 0.88, zIndex: 85, triggerAt: 0 },
-    { id: 'l046-olive-mid',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0046_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D9%81%D9%8A-%D8%A7%D9%84%D9%88%D8%B3%D8%B7-.png', type: 'float', depth: 0.9, zIndex: 86, triggerAt: 0 },
-    { id: 'l042-olive-rope', src: 'assets/images/DoC-Layers/DoC_LayersMap_0042_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D9%81%D9%8A-%D8%A7%D9%84%D8%AD%D8%A8%D9%84%D8%A9-%D8%A7%D9%84%D8%A7%D9%88%D9%84%D8%A9-.png', type: 'float', depth: 0.9, zIndex: 87, triggerAt: 0 },
-    { id: 'l048-olive-last', src: 'assets/images/DoC-Layers/DoC_LayersMap_0048_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%B2%D9%8A%D8%AA%D9%88%D9%86--%D8%A7%D8%AE%D8%B1-%D9%88%D8%AD%D8%AF%D8%A9-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%B5%D8%A8%D8%A7%D8%B1-.png', type: 'float', depth: 0.88, zIndex: 88, triggerAt: 0 },
-    { id: 'l047-tree-wall', src: 'assets/images/DoC-Layers/DoC_LayersMap_0047_%D8%A7%D9%84%D8%B4%D8%AC%D8%B1%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D8%A7%D9%84%D8%B7%D9%88%D9%8A%D9%84-%D8%A8%D8%B9%D8%AF-%D8%A7%D9%84%D9%85%D8%B4%D8%B1%D8%A8-.png', type: 'float', depth: 0.88, zIndex: 89, triggerAt: 0 },
-    { id: 'l049-trees-wall2', src: 'assets/images/DoC-Layers/DoC_LayersMap_0049_%D8%B4%D8%AC%D8%B1-%D8%B9%D9%84%D9%89-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%A7%D9%81%D8%AA%D8%A9-%D8%A7%D9%84%D8%A8%D9%8A%D8%B6%D8%A7%D8%A1-.png', type: 'float', depth: 0.85, zIndex: 90, triggerAt: 0 },
+    { id: 'l178-bld2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0178_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D8%B1%D9%82%D9%85-2-.png',
+      type: 'static', depth: 1.0, zIndex: 21, triggerAt: 0 },
 
-    // ── PLANTS (float) ──
-    { id: 'l037-plant-chain1', src: 'assets/images/DoC-Layers/DoC_LayersMap_0037_%D9%86%D8%A8%D8%AA%D8%A9-%D9%81%D9%8A-%D8%A7%D9%84%D8%B3%D9%86%D8%B3%D9%84%D8%A9-%D8%A7%D9%84%D8%A7%D9%88%D9%84%D8%A9-.png', type: 'float', depth: 0.92, zIndex: 95, triggerAt: 0.15 },
-    { id: 'l038-plant-behind-girl', src: 'assets/images/DoC-Layers/DoC_LayersMap_0038_%D9%86%D8%A8%D8%AA%D8%A9-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-.png', type: 'float', depth: 0.92, zIndex: 96, triggerAt: 0.15 },
-    { id: 'l043-plant-cactus-side', src: 'assets/images/DoC-Layers/DoC_LayersMap_0043_%D9%86%D8%A8%D8%AA%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%B3%D9%86%D8%B3%D9%84%D8%A9--%D8%A7%D9%88%D9%84-%D9%88%D8%AD%D8%AF%D8%A9-%D9%85%D9%86-%D8%AC%D9%87%D8%A9-%D8%A7%D9%84%D8%B5%D8%A8%D8%B1%D8%A9-.png', type: 'float', depth: 0.9, zIndex: 97, triggerAt: 0.15 },
-    { id: 'l044-plant-chain2', src: 'assets/images/DoC-Layers/DoC_LayersMap_0044_%D9%86%D8%A8%D8%AA%D8%A9-%D9%81%D9%8A-%D8%A7%D9%84%D8%B3%D9%86%D8%B3%D9%84%D8%A9-%D8%A7%D9%84%D8%AB%D8%A7%D9%86%D9%8A%D8%A9-.png', type: 'float', depth: 0.92, zIndex: 98, triggerAt: 0.15 },
-    { id: 'l071-plants-bld14', src: 'assets/images/DoC-Layers/DoC_LayersMap_0071_%D9%86%D8%A8%D8%A7%D8%AA-%D8%B9%D9%86%D8%AF-%D9%85%D8%A8%D8%A7%D9%86%D9%8A-14.png', type: 'float', depth: 0.75, zIndex: 99, triggerAt: 0 },
-    { id: 'l072-plants-bld19', src: 'assets/images/DoC-Layers/DoC_LayersMap_0072_%D9%86%D8%A8%D8%A7%D8%AA-%D8%B9%D9%86%D8%AF-%D9%85%D8%A8%D8%A7%D9%86%D9%8A-19.png', type: 'float', depth: 0.75, zIndex: 100, triggerAt: 0 },
-    { id: 'l131-plants-doors', src: 'assets/images/DoC-Layers/DoC_LayersMap_0131_%D9%86%D8%A8%D8%A7%D8%AA%D8%A7%D8%AA-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%A8%D9%88%D8%A7%D8%A8-%D8%A7%D9%84%D8%AB%D9%84%D8%A7%D8%AB%D8%A9-.png', type: 'float', depth: 0.83, zIndex: 101, triggerAt: 0 },
-    { id: 'l056-herbs',    src: 'assets/images/DoC-Layers/DoC_LayersMap_0056_%D8%A7%D8%B9%D8%B4%D8%A7%D8%A8-%D8%AA%D8%AD%D8%AA-%D8%B4%D8%AC%D8%B1-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D8%A7%D9%84%D8%B7%D9%88%D9%8A%D9%84-.png', type: 'float', depth: 0.9, zIndex: 102, triggerAt: 0 },
+    { id: 'l177-corner',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0177_%D8%A7%D9%84%D8%B2%D8%A7%D9%88%D9%8A%D8%A9-%D9%81%D9%88%D9%82-1-.png',
+      type: 'static', depth: 1.0, zIndex: 22, triggerAt: 0 },
 
-    // ── CACTUS ──
-    { id: 'l059-cactus',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0059_%D8%B5%D8%A8%D8%A7%D8%B1-.png',     type: 'parallax', depth: 0.93, zIndex: 105, triggerAt: 0.10 },
-    { id: 'l045-cactus-plant', src: 'assets/images/DoC-Layers/DoC_LayersMap_0045_%D8%B4%D8%AA%D9%84%D8%A9-%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%B5%D8%A8%D8%B1%D8%A9-.png', type: 'float', depth: 0.93, zIndex: 106, triggerAt: 0.10 },
+    { id: 'l176-bld12',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0176_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-12-.png',
+      type: 'static', depth: 1.0, zIndex: 23, triggerAt: 0 },
 
-    // ── WATER TANKS (parallax — rooftop elements) ──
-    { id: 'l115-tank-gear', src: 'assets/images/DoC-Layers/DoC_LayersMap_0115_%D8%AE%D8%B2%D8%A7%D9%86-%D9%85%D9%8A-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3-.png', type: 'parallax', depth: 0.7, zIndex: 110, triggerAt: 0 },
-    { id: 'l114-tank-corner', src: 'assets/images/DoC-Layers/DoC_LayersMap_0114_%D8%A7%D9%84%D8%AE%D8%B2%D8%A7%D9%86-%D9%81%D9%88%D9%82-%D8%A7%D9%88%D9%84-%D9%88%D8%A7%D8%AD%D8%AF-%D9%81%D9%8A-%D8%A7%D9%84%D8%B2%D8%A7%D9%88%D9%8A%D8%A9-.png', type: 'parallax', depth: 0.7, zIndex: 111, triggerAt: 0 },
-    { id: 'l113-tank-bld6', src: 'assets/images/DoC-Layers/DoC_LayersMap_0113_%D8%AE%D8%B2%D8%A7%D9%86-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A6-.png', type: 'parallax', depth: 0.7, zIndex: 112, triggerAt: 0 },
-    { id: 'l093-tank-last', src: 'assets/images/DoC-Layers/DoC_LayersMap_0093_%D8%A7%D8%AE%D8%B1-%D8%AE%D8%B2%D8%A7%D9%86-%D9%85%D9%8A-%D8%B5%D8%BA%D9%8A%D8%B1-.png', type: 'parallax', depth: 0.68, zIndex: 113, triggerAt: 0 },
+    { id: 'l175-bld7',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0175_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-7-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D9%85%D8%B3%D8%AC%D8%AF-%D8%A7%D9%84%D9%82%D8%A8%D9%84%D9%8A-.png',
+      type: 'static', depth: 1.0, zIndex: 24, triggerAt: 0 },
 
-    // ── SOLAR PANELS ──
-    { id: 'l007-solar1',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0007_%D9%84%D9%88%D8%AD-%D8%B7%D8%A7%D9%82%D8%A9-%D8%B4%D9%85%D8%B3%D9%8A%D8%A9-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D9%85%D8%A8%D9%86%D8%A7%D9%86%D9%8A-4.png', type: 'parallax', depth: 0.62, zIndex: 120, triggerAt: 0 },
-    { id: 'l008-solar2',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0008_%D8%A7%D9%84%D9%88%D8%A7%D8%AD-%D8%B4%D9%85%D8%B3%D9%8A%D8%A9-%D9%81%D9%88%D9%82-6.png', type: 'parallax', depth: 0.62, zIndex: 121, triggerAt: 0 },
-    { id: 'l013-solar3',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0013_%D8%A7%D9%84%D9%88%D8%A7%D8%AD-%D8%A7%D9%84%D8%B7%D8%A7%D9%82%D8%A9-%D8%A7%D9%84%D8%B4%D9%85%D8%B3%D9%8A%D8%A9-%D8%A7%D9%84%D8%A7%D8%AE%D9%8A%D8%B1-%D8%B9%D9%84%D9%89-%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-21-.png', type: 'parallax', depth: 0.63, zIndex: 122, triggerAt: 0 },
+    { id: 'l174-bld-first',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0174_%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D9%81%D9%8A-%D8%A7%D9%84%D8%A7%D9%88%D9%84-%D8%AA%D8%AD%D8%AA-%D8%B1%D9%82%D9%85-1.png',
+      type: 'static', depth: 1.0, zIndex: 25, triggerAt: 0 },
 
-    // ── ELECTRIC POLES ──
-    { id: 'l125-pole1',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0125_%D8%B9%D9%85%D9%88%D8%AF-%D9%83%D9%87%D8%B1%D8%A8%D8%A7%D8%A1-%D9%81%D9%8A-%D9%85%D8%A8%D8%A7%D9%86%D9%8A-4.png', type: 'parallax', depth: 0.72, zIndex: 125, triggerAt: 0 },
-    { id: 'l126-pole2',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0126_%D8%B9%D9%85%D9%88%D8%AF-%D8%A7%D9%85%D8%A7%D9%85-%D8%A7%D9%84%D8%A7%D9%82%D9%88%D8%A7%D8%B3-.png', type: 'parallax', depth: 0.74, zIndex: 126, triggerAt: 0 },
+    { id: 'l173-bld9',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0173_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-9.png',
+      type: 'static', depth: 1.0, zIndex: 26, triggerAt: 0 },
 
-    // ── BIRDS (float/fly) ──
-    { id: 'l050-bird-fly',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0050_%D8%B9%D8%B5%D9%88%D8%B1-%D8%B7%D8%A7%D9%8A%D8%B1-.png',         type: 'float', depth: 1.1, zIndex: 130, triggerAt: 0.05 },
-    { id: 'l051-bird-drink', src: 'assets/images/DoC-Layers/DoC_LayersMap_0051_%D8%B9%D8%B5%D9%81%D9%88%D8%B1-%D8%A8%D8%B4%D8%B1%D8%A8-%D9%85%D9%8A-.png', type: 'float', depth: 1.05, zIndex: 131, triggerAt: 0.05 },
+    { id: 'l172-bld-shadow2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0172_%D8%B8%D9%84-%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-.png',
+      type: 'static', depth: 1.0, zIndex: 27, triggerAt: 0 },
 
-    // ── GROUND TEXTURES ──
-    { id: 'l081-ground-olive', src: 'assets/images/DoC-Layers/DoC_LayersMap_0081_%D8%A7%D9%84%D8%A7%D8%B1%D8%B6%D9%8A%D9%8A%D8%A9-%D8%A7%D9%84%D9%8A-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-.png', type: 'static', depth: 1.0, zIndex: 135, triggerAt: 0 },
-    { id: 'l058-red-soil',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0058_%D8%AA%D8%B1%D8%A7%D8%A8-%D8%A7%D8%AD%D9%85%D8%B1-%D8%B9%D9%86%D8%AF-%D8%A7%D9%84%D9%86%D8%A7%D8%B3%D9%84-.png', type: 'static', depth: 1.0, zIndex: 136, triggerAt: 0 },
-    { id: 'l150-ground-start', src: 'assets/images/DoC-Layers/DoC_LayersMap_0150_%D8%A7%D8%B1%D8%B6%D9%8A%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%B4%D8%AC%D8%B1%D8%A9-%D9%81%D9%8A-%D8%A7%D9%84%D8%A8%D8%AF%D8%A7%D9%8A%D8%A9-.png', type: 'static', depth: 1.0, zIndex: 137, triggerAt: 0 },
+    { id: 'l171-bld8',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0171_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-8-.png',
+      type: 'static', depth: 1.0, zIndex: 28, triggerAt: 0 },
 
-    // ── FOUNTAIN / WATER FEATURE ──
-    { id: 'l055-fountain', src: 'assets/images/DoC-Layers/DoC_LayersMap_0055_%D9%85%D8%B4%D8%B1%D8%A8-%D8%A7%D9%84%D9%85%D8%A7%D8%A1-.png', type: 'parallax', depth: 0.93, zIndex: 140, triggerAt: 0.05 },
+    { id: 'l169-l2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0169_Layer-2.png',
+      type: 'static', depth: 1.0, zIndex: 29, triggerAt: 0 },
 
-    // ── RECYCLING STATION ──
-    { id: 'l052-cup-holder', src: 'assets/images/DoC-Layers/DoC_LayersMap_0052_%D9%85%D8%AB%D8%A8%D8%A9-%D8%A7%D9%84%D9%83%D8%A7%D8%B3%D8%A7%D8%AA-.png', type: 'parallax', depth: 0.93, zIndex: 141, triggerAt: 0.10 },
-    { id: 'l053-cups',      src: 'assets/images/DoC-Layers/DoC_LayersMap_0053_%D9%83%D8%A7%D8%B3%D8%A7%D8%AA--%D8%A7%D8%B9%D8%A7%D8%AF%D8%A9-%D8%A7%D9%84%D8%AA%D8%AF%D9%88%D9%8A%D8%B1-.png', type: 'parallax', depth: 0.93, zIndex: 142, triggerAt: 0.10 },
+    // ── GROUND & ROAD ──────────────────────────────────────────────
+    { id: 'l164-ground',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0164_%D8%A7%D9%84%D8%A7%D8%B1%D8%B6%D9%8A%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 30, triggerAt: 0 },
 
-    // ── FLOWERS IN BASKETS (float) ──
-    { id: 'l082-flowers1', src: 'assets/images/DoC-Layers/DoC_LayersMap_0082_%D8%A7%D9%84%D9%88%D8%B1%D8%AF-%D9%81%D9%8A-%D8%A7%D9%84%D8%B3%D9%84%D8%A9-.png', type: 'float', depth: 0.95, zIndex: 145, triggerAt: 0.20 },
-    { id: 'l083-flowers2', src: 'assets/images/DoC-Layers/DoC_LayersMap_0083_%D9%88%D8%B1%D8%AF-%D9%81%D9%8A-%D8%B3%D9%84%D8%A9-.png',                        type: 'float', depth: 0.95, zIndex: 146, triggerAt: 0.20 },
-    { id: 'l084-flowers3', src: 'assets/images/DoC-Layers/DoC_LayersMap_0084_%D8%A7%D9%84%D9%88%D8%B1%D8%AF-%D9%81%D9%8A-%D8%A7%D9%84%D8%B3%D9%84%D8%A9-%D9%81%D9%8A-%D8%A7%D9%84%D8%AE%D9%84%D9%81-.png', type: 'float', depth: 0.94, zIndex: 147, triggerAt: 0.20 },
+    { id: 'l163-road',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0163_%D8%A7%D9%84%D8%B7%D8%B1%D9%8A%D9%82-%D8%A7%D9%84%D8%A7%D8%B5%D9%81%D8%A4-.png',
+      type: 'static', depth: 1.0, zIndex: 31, triggerAt: 0 },
 
-    // ── PLASTIC BOTTLES (recycling wall) ──
-    { id: 'l027-bottle2', src: 'assets/images/DoC-Layers/DoC_LayersMap_0027_%D9%82%D9%86%D9%8A%D9%86%D9%8A%D8%A9-2.png', type: 'float', depth: 0.96, zIndex: 150, triggerAt: 0.12 },
-    { id: 'l028-bottle5', src: 'assets/images/DoC-Layers/DoC_LayersMap_0028_%D9%82%D9%86%D9%8A%D9%86%D8%A9-5.png',       type: 'float', depth: 0.96, zIndex: 151, triggerAt: 0.12 },
-    { id: 'l031-bottle-recycle', src: 'assets/images/DoC-Layers/DoC_LayersMap_0031_%D9%82%D9%86%D9%8A%D9%86%D9%8A%D8%A9-%D8%A7%D8%B9%D8%A7%D8%AF%D8%A9-%D8%AA%D8%AF%D9%88%D9%8A%D8%B1-1.png', type: 'float', depth: 0.96, zIndex: 152, triggerAt: 0.12 },
-    { id: 'l134-wall-bottles', src: 'assets/images/DoC-Layers/DoC_LayersMap_0134_%D8%AC%D8%AF%D8%A7%D8%B1-%D8%B9%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%82%D9%86%D8%A7%D9%86%D9%8A-%D9%84%D8%A8%D9%84%D8%A7%D8%B3%D8%AA%D9%83-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D9%82%D8%AF%D8%B3-.png', type: 'parallax', depth: 0.83, zIndex: 153, triggerAt: 0.30 },
+    { id: 'l168-ground-red',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0168_%D8%A7%D9%84%D8%A7%D8%B1%D8%B6%D9%8A%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%AD%D9%8A%D8%B7-%D9%84%D8%AD%D9%85%D8%B1-%D9%88-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D9%81%D8%AA%D8%A7%D8%A9-%D8%A7%D9%84%D9%8A-%D8%A8%D8%AA%D8%A8%D8%B9-%D9%88%D8%B1%D8%AF-.png',
+      type: 'static', depth: 1.0, zIndex: 32, triggerAt: 0 },
 
-    // ── VENDOR SCENE (البياع) ──
-    { id: 'l025-clay-pot', src: 'assets/images/DoC-Layers/DoC_LayersMap_0025_%D9%81%D8%AE%D8%A7%D8%B1%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%B4%D8%AC%D8%B1%D8%A9-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D8%A7%D9%84%D8%A7%D9%88%D9%84%D8%A9-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%A8%D9%8A%D8%A7%D8%B9-.png', type: 'static', depth: 1.0, zIndex: 155, triggerAt: 0 },
-    { id: 'l119-cart',    src: 'assets/images/DoC-Layers/DoC_LayersMap_0119_%D8%A8%D8%B3%D8%B7%D8%A9.png',           type: 'static', depth: 1.0, zIndex: 156, triggerAt: 0 },
-    { id: 'l118-wheel',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0118_%D8%B9%D8%AC%D9%84-%D8%A7%D9%84%D8%A8%D8%B3%D8%B7%D8%A9-.png', type: 'static', depth: 1.0, zIndex: 157, triggerAt: 0 },
-    { id: 'l117-bread',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0117_%D9%83%D8%B9%D9%83-%D8%A7%D9%84%D9%82%D8%AF%D8%B3-%D8%B9%D9%84%D9%89-%D8%A7%D9%84%D8%A8%D8%B3%D8%B7%D8%A9-.png', type: 'static', depth: 1.0, zIndex: 158, triggerAt: 0 },
-    { id: 'l116-eggs',    src: 'assets/images/DoC-Layers/DoC_LayersMap_0116_%D9%83%D8%B1%D8%AA%D9%88%D9%86%D8%A9-%D8%A7%D9%84%D8%A8%D9%8A%D8%B6-.png', type: 'static', depth: 1.0, zIndex: 159, triggerAt: 0 },
-    { id: 'l120-old-man', src: 'assets/images/DoC-Layers/DoC_LayersMap_0120_%D8%AE%D8%AA%D9%8A%D8%A7%D8%B1-%D8%A7%D9%84%D9%8A-%D8%B9%D9%84%D9%89-%D8%A7%D9%84%D8%A8%D8%B3%D8%B7%D8%A9-.png', type: 'static', depth: 1.0, zIndex: 160, triggerAt: 0 },
+    { id: 'l166-ground-flowers',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0166_%D8%A7%D9%84%D8%A7%D8%B1%D8%B6%D9%8A%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D9%88%D8%B1%D8%AF-.png',
+      type: 'static', depth: 1.0, zIndex: 33, triggerAt: 0 },
 
-    // ── WEAVING WOMAN ──
-    { id: 'l060-woman-weave', src: 'assets/images/DoC-Layers/DoC_LayersMap_0060_%D8%A7%D9%84%D9%85%D8%B1%D8%A7%D8%A9-%D8%A7%D9%84%D9%8A-%D8%A8%D8%AA%D8%AE%D9%8A%D8%B7-%D9%81%D9%8A-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-.png', type: 'static', depth: 1.0, zIndex: 162, triggerAt: 0.10 },
-    { id: 'l057-chains',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0057_%D8%B3%D9%86%D8%A7%D8%B3%D9%84-%D8%A7%D9%84%D9%8A-%D8%B9%D9%86%D8%AF-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-%D8%A7%D9%84%D9%8A-%D8%A8%D8%AA%D8%AE%D9%8A%D8%B7-.png', type: 'parallax', depth: 0.97, zIndex: 163, triggerAt: 0.10 },
-    { id: 'l077-hand-weave', src: 'assets/images/DoC-Layers/DoC_LayersMap_0077_%D9%8A%D8%AF-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-%D8%A7%D9%84%D9%8A-%D8%A8%D8%AA%D8%AE%D9%8A%D8%B7-%D8%A7%D9%84%D9%8A%D8%AF.png', type: 'static', depth: 1.0, zIndex: 164, triggerAt: 0.10 },
+    // ── MID BUILDINGS ──────────────────────────────────────────────
+    { id: 'l167-bld5',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0167_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-5.png',
+      type: 'static', depth: 1.0, zIndex: 35, triggerAt: 0 },
 
-    // ── BASKET GIRL ──
-    { id: 'l089-basket',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0089_%D8%B5%D9%86%D9%8A%D8%A9-%D9%82%D8%B4-.png',           type: 'static', depth: 1.0, zIndex: 165, triggerAt: 0.25 },
-    { id: 'l088-hand-basket', src: 'assets/images/DoC-Layers/DoC_LayersMap_0088_%D9%8A%D8%AF-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-%D8%A7%D9%84%D9%8A-%D9%85%D8%B9%D9%87%D8%A7-%D8%B5%D9%86%D9%8A%D8%A9-%D9%82%D8%B4-.png', type: 'static', depth: 1.0, zIndex: 166, triggerAt: 0.25 },
-    { id: 'l087-plastic-weave', src: 'assets/images/DoC-Layers/DoC_LayersMap_0087_%D8%A8%D9%84%D8%A7%D8%B3%D8%AA%D9%83-%D8%A7%D9%84%D9%8A-%D8%A8%D8%AA%D8%AE%D9%8A%D8%B7-%D9%81%D9%8A-%D8%B5%D9%86%D9%8A%D8%A9-%D8%A7%D9%84%D9%82%D8%B4-.png', type: 'static', depth: 1.0, zIndex: 167, triggerAt: 0.25 },
-    { id: 'l090-girl-basket', src: 'assets/images/DoC-Layers/DoC_LayersMap_0090_%D8%A7%D9%84%D8%B5%D8%A8%D9%8A%D8%A9-%D8%A7%D9%84%D9%8A-%D9%85%D8%B9%D9%87%D8%A7-%D8%B5%D9%86%D9%8A%D8%A9-%D9%82%D8%B4-.png', type: 'static', depth: 1.0, zIndex: 168, triggerAt: 0.25 },
+    { id: 'l165-bld6',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0165_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-6.png',
+      type: 'static', depth: 1.0, zIndex: 36, triggerAt: 0 },
 
-    // ── TRASH BIN ──
-    { id: 'l148-trash',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0148_%D8%AD%D8%A7%D9%88%D9%8A%D8%A9-%D8%A7%D9%84%D8%B2%D8%A8%D8%A7%D9%84%D8%A9-.png', type: 'static', depth: 1.0, zIndex: 170, triggerAt: 0.40 },
-    { id: 'l147-trash-shadow', src: 'assets/images/DoC-Layers/DoC_LayersMap_0147_%D8%B8%D9%84-%D8%A7%D9%84%D8%AD%D9%88%D9%8A%D8%A7%D8%AA-.png', type: 'static', depth: 1.0, zIndex: 171, triggerAt: 0.40 },
+    { id: 'l162-bld-gear',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0162_%D9%85%D8%A8%D9%86%D8%A9-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3-.png',
+      type: 'static', depth: 1.0, zIndex: 37, triggerAt: 0 },
 
-    // ── YOUTH GROUP (main scene) ──
-    { id: 'l145-bench',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0145_%D8%A7%D9%84%D9%85%D9%82%D8%B9%D8%AF-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%B4%D8%A8%D8%A7%D8%A8-.png', type: 'static', depth: 1.0, zIndex: 172, triggerAt: 0.45 },
-    { id: 'l144-youth',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0144_%D8%B4%D8%A8%D8%A7%D8%A8-%D8%A7%D9%84%D9%8A%D8%A7%D9%81%D8%B9%D9%8A%D9%86-.png', type: 'static', depth: 1.0, zIndex: 173, triggerAt: 0.45 },
-    { id: 'l143-hijab',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0143_%D8%AD%D8%AC%D8%A7%D8%A8-.png',           type: 'static', depth: 1.0, zIndex: 174, triggerAt: 0.45 },
-    { id: 'l151-trainer', src: 'assets/images/DoC-Layers/DoC_LayersMap_0151_%D8%A7%D9%84%D9%85%D8%AF%D8%B1%D8%A8-%D8%A7%D9%84%D9%8A-%D8%B9%D9%86%D8%AF-%D8%A7%D9%84%D8%B4%D8%A8%D8%A7%D8%A8-.png', type: 'static', depth: 1.0, zIndex: 175, triggerAt: 0.45 },
-    { id: 'l153-sign',    src: 'assets/images/DoC-Layers/DoC_LayersMap_0153_%D9%84%D9%81%D8%AA%D8%A9-%D8%A8%D9%8A%D8%B6%D8%A7%D8%A1-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%A7%D8%A8%D9%88%D8%A7%D8%A8-%D8%A7%D9%84%D8%AB%D9%84%D8%A7%D8%AB.png', type: 'static', depth: 1.0, zIndex: 176, triggerAt: 0.45 },
+    { id: 'l159-bld-row4',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0159_%D8%B5%D9%81-%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D8%B1%D9%82%D9%85-4-.png',
+      type: 'static', depth: 1.0, zIndex: 38, triggerAt: 0 },
 
-    // ── HANDS ──
-    { id: 'l139-hand-bag',    src: 'assets/images/DoC-Layers/DoC_LayersMap_0139_%D9%8A%D8%AF-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-%D8%A7%D9%84%D9%8A-%D9%81%D9%8A%D9%87%D8%A7-%D9%83%D9%8A%D8%B3-.png', type: 'static', depth: 1.0, zIndex: 177, triggerAt: 0.45 },
-    { id: 'l140-hand-bread',  src: 'assets/images/DoC-Layers/DoC_LayersMap_0140_%D9%8A%D8%AF-%D8%A7%D9%84%D8%B4%D8%A8-%D8%A7%D9%84%D9%8A-%D9%81%D9%8A%D9%87%D8%A7-%D9%83%D8%B9%D9%83-%D8%A7%D9%84%D9%82%D8%AF%D8%B3-.png', type: 'static', depth: 1.0, zIndex: 178, triggerAt: 0.45 },
-    { id: 'l142-hand-coffee', src: 'assets/images/DoC-Layers/DoC_LayersMap_0142_%D9%8A%D8%AF-%D8%A7%D9%84%D8%B4%D8%A8-%D8%A7%D9%84%D9%8A-%D9%81%D9%8A%D9%87%D8%A7-%D9%82%D9%87%D9%88%D8%A9-.png', type: 'static', depth: 1.0, zIndex: 179, triggerAt: 0.45 },
-    { id: 'l138-phone',   src: 'assets/images/DoC-Layers/DoC_LayersMap_0138_%D8%AA%D9%84%D9%81%D9%88%D9%86-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-.png', type: 'static', depth: 1.0, zIndex: 180, triggerAt: 0.45 },
+    { id: 'l158-bld-gear2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0158_%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3-.png',
+      type: 'static', depth: 1.0, zIndex: 39, triggerAt: 0 },
 
-    // ── BOY WITH KITE (float — kite moves) ──
-    { id: 'l130-boy-kite', src: 'assets/images/DoC-Layers/DoC_LayersMap_0130_%D8%A7%D9%84%D8%B4%D8%A8-%D8%A7%D9%84%D9%8A-%D9%85%D8%B9%D9%87-%D8%B7%D9%8A%D8%A7%D8%B1%D8%A9-%D9%88%D8%B1%D9%82%D9%8A%D8%A9--.png', type: 'float', depth: 1.02, zIndex: 182, triggerAt: 0.55 },
+    { id: 'l156-bld13',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0156_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-13.png',
+      type: 'static', depth: 1.0, zIndex: 40, triggerAt: 0 },
 
-    // ── PLASTIC BAG ITEMS ──
-    { id: 'l004-bag1',    src: 'assets/images/DoC-Layers/DoC_LayersMap_0004_%D8%B4%D9%86%D8%B7%D8%A9-%D9%85%D9%86-%D9%84%D8%A8%D9%84%D8%A7%D8%B3%D8%AA%D9%83-%D8%B9%D9%86%D8%AF-%D8%A7%D9%84%D8%B4%D8%A8%D8%A7%D8%A8-.png', type: 'float', depth: 0.97, zIndex: 183, triggerAt: 0.30 },
+    { id: 'l133-bld17',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0133_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-17.png',
+      type: 'static', depth: 1.0, zIndex: 41, triggerAt: 0 },
+
+    { id: 'l132-bld-doors',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0132_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%A7%D8%A8%D9%88%D8%A7%D8%A8-%D8%A7%D9%84%D8%AB%D9%84%D8%A7%D8%AB%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 42, triggerAt: 0 },
+
+    { id: 'l129-bld21',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0129_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-21-.png',
+      type: 'static', depth: 1.0, zIndex: 43, triggerAt: 0 },
+
+    { id: 'l080-bld15',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0080_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-15.png',
+      type: 'static', depth: 1.0, zIndex: 44, triggerAt: 0 },
+
+    { id: 'l079-bld16',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0079_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-16.png',
+      type: 'static', depth: 1.0, zIndex: 45, triggerAt: 0 },
+
+    { id: 'l076-bld19',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0076_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-19.png',
+      type: 'static', depth: 1.0, zIndex: 46, triggerAt: 0 },
+
+    { id: 'l075-bld14',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0075_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-14.png',
+      type: 'static', depth: 1.0, zIndex: 47, triggerAt: 0 },
+
+    { id: 'l074-bld20',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0074_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-20-.png',
+      type: 'static', depth: 1.0, zIndex: 48, triggerAt: 0 },
+
+    { id: 'l073-bld18',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0073_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-18.png',
+      type: 'static', depth: 1.0, zIndex: 49, triggerAt: 0 },
+
+    { id: 'l064-bld-fountain',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0064_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D9%85%D8%B4%D8%B1%D8%A8-11.png',
+      type: 'static', depth: 1.0, zIndex: 50, triggerAt: 0 },
+
+    { id: 'l022-bld-gear3',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0022_%D9%85%D8%A8%D8%A7%D9%86%D9%8A-%D8%AA%D8%AD%D8%AA-3--%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3-%D9%81%D9%8A-%D8%A8%D8%AF%D8%A7%D9%8A%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 51, triggerAt: 0 },
+
+    { id: 'l021-bld-vendor',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0021_%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-3-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%A8%D9%8A%D8%A7%D8%B9-.png',
+      type: 'static', depth: 1.0, zIndex: 52, triggerAt: 0 },
+
+    // ── WALLS & STRUCTURAL ─────────────────────────────────────────
+    { id: 'l061-wall-long',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0061_%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D9%84%D8%B7%D9%88%D9%8A%D9%84-.png',
+      type: 'static', depth: 1.0, zIndex: 60, triggerAt: 0 },
+
+    { id: 'l063-wall-fountain',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0063_%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D9%85%D8%B4%D8%B1%D8%A8-%D9%88-%D8%A8%D8%AC%D8%A7%D9%86%D8%A8-%D8%A7%D9%84%D8%A8%D8%A7%D8%A8-.png',
+      type: 'static', depth: 1.0, zIndex: 61, triggerAt: 0 },
+
+    { id: 'l062-door-yellow',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0062_%D8%A7%D9%84%D8%A8%D8%A7%D8%A8-%D8%A7%D9%84%D8%A7%D8%B5%D9%81%D8%B1-%D9%81%D9%8A-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D9%85%D8%A7%D8%A1-.png',
+      type: 'static', depth: 1.0, zIndex: 62, triggerAt: 0 },
+
+    { id: 'l024-wall-gear',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0024_%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D9%81%D9%8A-%D8%A7%D9%84%D8%A8%D8%AF%D8%A7%D9%8A%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3.png',
+      type: 'static', depth: 1.0, zIndex: 63, triggerAt: 0 },
+
+    { id: 'l154-wall-mosque',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0154_%D8%AC%D8%AF%D8%A7%D8%B1-%D9%82%D8%AF%D8%A7%D9%85-%D8%A7%D9%84%D8%AC%D8%A7%D9%85%D8%B9--%D9%88%D8%B9%D9%84%D9%8A-%D9%84%D9%81%D8%AA%D8%A9-%D8%A8%D9%8A%D8%B6%D8%A7%D8%A1--.png',
+      type: 'static', depth: 1.0, zIndex: 64, triggerAt: 0 },
+
+    { id: 'l155-three-doors',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0155_%D8%AB%D9%84%D8%A7%D8%AB-%D8%A7%D8%A8%D9%88%D8%A8-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D8%B4%D8%A8%D8%A7%D8%A8-.png',
+      type: 'static', depth: 1.0, zIndex: 65, triggerAt: 0 },
+
+    { id: 'l152-arches',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0152_%D8%A7%D9%82%D9%88%D8%A7%D8%B3-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D9%85%D8%B3%D8%AC%D8%AF-%D8%A7%D9%84%D9%82%D8%A8%D9%84%D9%8A--4-.png',
+      type: 'static', depth: 1.0, zIndex: 66, triggerAt: 0 },
+
+    { id: 'l091-wall-basket',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0091_%D8%A7%D9%84%D8%AD%D9%8A%D8%B7-%D8%A7%D9%84%D9%8A-%D9%88%D8%B1%D8%A7%D8%A1-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-%D8%A7%D9%84%D9%8A-%D9%85%D8%B9%D9%87%D8%A7-%D8%B5%D9%86%D9%8A%D8%A9-%D9%82%D8%B4-.png',
+      type: 'static', depth: 1.0, zIndex: 67, triggerAt: 0 },
+
+    { id: 'l078-wall-brown',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0078_%D8%A7%D9%84%D8%AD%D9%8A%D8%B7-%D8%A7%D9%84%D8%A8%D9%86%D9%8A-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D9%85%D8%B4%D8%B1%D8%A8-%D8%A8%D9%8A%D9%86-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D9%88-%D8%A7%D9%84%D8%AD%D9%8A%D8%B7-%D8%A7%D9%84%D8%A7%D8%B5%D9%81%D8%B1-.png',
+      type: 'static', depth: 1.0, zIndex: 68, triggerAt: 0 },
+
+    { id: 'l137-wall-red',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0137_%D8%AC%D8%AF%D8%A7%D8%B1-%D8%A7%D8%AD%D9%85%D8%B1-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%AD%D9%8A%D8%B7-%D8%A7%D9%84%D9%8A-%D8%B9%D9%84%D9%8A%D9%87-%D9%82%D9%86%D8%A7%D9%86%D9%8A-%D8%A8%D9%84%D8%A7%D8%B3%D8%AA%D9%8A%D9%83-%D9%88-%D9%81%D9%88%D9%82%D9%87-%D8%B3%D8%B1%D9%88%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 69, triggerAt: 0 },
+
+    // ── CYPRESS TREES (sway gently) ────────────────────────────────
+    { id: 'l065-cypress1',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0065_%D8%B3%D8%B1%D9%88-.png',
+      type: 'sway', depth: 1.0, zIndex: 75, triggerAt: 0 },
+
+    { id: 'l066-cypress2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0066_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%B3%D8%B1%D9%88-.png',
+      type: 'sway', depth: 1.0, zIndex: 76, triggerAt: 0 },
+
+    { id: 'l067-cypress3',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0067_%D8%B3%D8%B1%D9%88.png',
+      type: 'sway', depth: 1.0, zIndex: 77, triggerAt: 0 },
+
+    { id: 'l068-cypress4',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0068_%D8%B3%D8%B1%D9%88.png',
+      type: 'sway', depth: 1.0, zIndex: 78, triggerAt: 0 },
+
+    { id: 'l069-cypress5',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0069_%D8%B3%D8%B1%D9%88.png',
+      type: 'sway', depth: 1.0, zIndex: 79, triggerAt: 0 },
+
+    { id: 'l070-cypress6',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0070_%D8%B3%D8%B1%D9%88-.png',
+      type: 'sway', depth: 1.0, zIndex: 80, triggerAt: 0 },
+
+    { id: 'l135-cypress-dome',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0135_%D8%B3%D8%B1%D9%88-%D8%B9%D9%86%D8%AF-%D9%82%D8%A8%D8%A9-%D8%A7%D9%84%D8%B5%D8%AE%D8%B1%D8%A9-.png',
+      type: 'sway', depth: 1.0, zIndex: 81, triggerAt: 0 },
+
+    // ── OLIVE TREES (float gently) ─────────────────────────────────
+    { id: 'l026-olive-start',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0026_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D9%81%D9%8A-%D8%A7%D9%84%D8%A8%D8%AF%D8%A7%D9%8A%D8%A9-.png',
+      type: 'float', depth: 1.0, zIndex: 85, triggerAt: 0 },
+
+    { id: 'l046-olive-mid',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0046_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D9%81%D9%8A-%D8%A7%D9%84%D9%88%D8%B3%D8%B7-.png',
+      type: 'float', depth: 1.0, zIndex: 86, triggerAt: 0 },
+
+    { id: 'l042-olive-rope',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0042_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D9%81%D9%8A-%D8%A7%D9%84%D8%AD%D8%A8%D9%84%D8%A9-%D8%A7%D9%84%D8%A7%D9%88%D9%84%D8%A9-.png',
+      type: 'float', depth: 1.0, zIndex: 87, triggerAt: 0 },
+
+    { id: 'l048-olive-last',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0048_%D8%B4%D8%AC%D8%B1%D8%A9-%D8%B2%D9%8A%D8%AA%D9%88%D9%86--%D8%A7%D8%AE%D8%B1-%D9%88%D8%AD%D8%AF%D8%A9-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%B5%D8%A8%D8%A7%D8%B1-.png',
+      type: 'float', depth: 1.0, zIndex: 88, triggerAt: 0 },
+
+    { id: 'l047-tree-wall',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0047_%D8%A7%D9%84%D8%B4%D8%AC%D8%B1%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D8%A7%D9%84%D8%B7%D9%88%D9%8A%D9%84-%D8%A8%D8%B9%D8%AF-%D8%A7%D9%84%D9%85%D8%B4%D8%B1%D8%A8-.png',
+      type: 'float', depth: 1.0, zIndex: 89, triggerAt: 0 },
+
+    { id: 'l049-trees-wall2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0049_%D8%B4%D8%AC%D8%B1-%D8%B9%D9%84%D9%89-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%A7%D9%81%D8%AA%D8%A9-%D8%A7%D9%84%D8%A8%D9%8A%D8%B6%D8%A7%D8%A1-.png',
+      type: 'float', depth: 1.0, zIndex: 90, triggerAt: 0 },
+
+    // ── PLANTS ─────────────────────────────────────────────────────
+    { id: 'l071-plants-bld14',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0071_%D9%86%D8%A8%D8%A7%D8%AA-%D8%B9%D9%86%D8%AF-%D9%85%D8%A8%D8%A7%D9%86%D9%8A-14.png',
+      type: 'float', depth: 1.0, zIndex: 95, triggerAt: 0 },
+
+    { id: 'l072-plants-bld19',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0072_%D9%86%D8%A8%D8%A7%D8%AA-%D8%B9%D9%86%D8%AF-%D9%85%D8%A8%D8%A7%D9%86%D9%8A-19.png',
+      type: 'float', depth: 1.0, zIndex: 96, triggerAt: 0 },
+
+    { id: 'l131-plants-doors',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0131_%D9%86%D8%A8%D8%A7%D8%AA%D8%A7%D8%AA-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%A8%D9%88%D8%A7%D8%A8-%D8%A7%D9%84%D8%AB%D9%84%D8%A7%D8%AB%D8%A9-.png',
+      type: 'float', depth: 1.0, zIndex: 97, triggerAt: 0 },
+
+    { id: 'l056-herbs',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0056_%D8%A7%D8%B9%D8%B4%D8%A7%D8%A8-%D8%AA%D8%AD%D8%AA-%D8%B4%D8%AC%D8%B1-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D8%A7%D9%84%D8%B7%D9%88%D9%8A%D9%84-.png',
+      type: 'float', depth: 1.0, zIndex: 98, triggerAt: 0 },
+
+    { id: 'l037-plant-chain1',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0037_%D9%86%D8%A8%D8%AA%D8%A9-%D9%81%D9%8A-%D8%A7%D9%84%D8%B3%D9%86%D8%B3%D9%84%D8%A9-%D8%A7%D9%84%D8%A7%D9%88%D9%84%D8%A9-.png',
+      type: 'float', depth: 1.0, zIndex: 99, triggerAt: 0.10 },
+
+    { id: 'l038-plant-behind-girl',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0038_%D9%86%D8%A8%D8%AA%D8%A9-%D8%AE%D9%84%D9%81-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-.png',
+      type: 'float', depth: 1.0, zIndex: 100, triggerAt: 0.10 },
+
+    { id: 'l044-plant-chain2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0044_%D9%86%D8%A8%D8%AA%D8%A9-%D9%81%D9%8A-%D8%A7%D9%84%D8%B3%D9%86%D8%B3%D9%84%D8%A9-%D8%A7%D9%84%D8%AB%D8%A7%D9%86%D9%8A%D8%A9-.png',
+      type: 'float', depth: 1.0, zIndex: 101, triggerAt: 0.10 },
+
+    // ── CACTUS ─────────────────────────────────────────────────────
+    { id: 'l059-cactus',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0059_%D8%B5%D8%A8%D8%A7%D8%B1-.png',
+      type: 'static', depth: 1.0, zIndex: 105, triggerAt: 0 },
+
+    { id: 'l045-cactus-plant',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0045_%D8%B4%D8%AA%D9%84%D8%A9-%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%B5%D8%A8%D8%B1%D8%A9-.png',
+      type: 'float', depth: 1.0, zIndex: 106, triggerAt: 0 },
+
+    // ── WATER TANKS ────────────────────────────────────────────────
+    { id: 'l115-tank-gear',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0115_%D8%AE%D8%B2%D8%A7%D9%86-%D9%85%D9%8A-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D8%AA%D8%B1%D8%B3-.png',
+      type: 'static', depth: 1.0, zIndex: 110, triggerAt: 0 },
+
+    { id: 'l114-tank-corner',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0114_%D8%A7%D9%84%D8%AE%D8%B2%D8%A7%D9%86-%D9%81%D9%88%D9%82-%D8%A7%D9%88%D9%84-%D9%88%D8%A7%D8%AD%D8%AF-%D9%81%D9%8A-%D8%A7%D9%84%D8%B2%D8%A7%D9%88%D9%8A%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 111, triggerAt: 0 },
+
+    { id: 'l093-tank-last',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0093_%D8%A7%D8%AE%D8%B1-%D8%AE%D8%B2%D8%A7%D9%86-%D9%85%D9%8A-%D8%B5%D8%BA%D9%8A%D8%B1-.png',
+      type: 'static', depth: 1.0, zIndex: 112, triggerAt: 0 },
+
+    // ── SOLAR PANELS ───────────────────────────────────────────────
+    { id: 'l007-solar1',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0007_%D9%84%D9%88%D8%AD-%D8%B7%D8%A7%D9%82%D8%A9-%D8%B4%D9%85%D8%B3%D9%8A%D8%A9-%D9%81%D9%88%D9%82-%D8%A7%D9%84%D9%85%D8%A8%D9%86%D8%A7%D9%86%D9%8A-4.png',
+      type: 'static', depth: 1.0, zIndex: 115, triggerAt: 0 },
+
+    { id: 'l008-solar2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0008_%D8%A7%D9%84%D9%88%D8%A7%D8%AD-%D8%B4%D9%85%D8%B3%D9%8A%D8%A9-%D9%81%D9%88%D9%82-6.png',
+      type: 'static', depth: 1.0, zIndex: 116, triggerAt: 0 },
+
+    { id: 'l013-solar3',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0013_%D8%A7%D9%84%D9%88%D8%A7%D8%AD-%D8%A7%D9%84%D8%B7%D8%A7%D9%82%D8%A9-%D8%A7%D9%84%D8%B4%D9%85%D8%B3%D9%8A%D8%A9-%D8%A7%D9%84%D8%A7%D8%AE%D9%8A%D8%B1-%D8%B9%D9%84%D9%89-%D8%A7%D9%84%D9%85%D8%A8%D8%A7%D9%86%D9%8A-21-.png',
+      type: 'static', depth: 1.0, zIndex: 117, triggerAt: 0 },
+
+    // ── ELECTRIC POLES ─────────────────────────────────────────────
+    { id: 'l125-pole1',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0125_%D8%B9%D9%85%D9%88%D8%AF-%D9%83%D9%87%D8%B1%D8%A8%D8%A7%D8%A1-%D9%81%D9%8A-%D9%85%D8%A8%D8%A7%D9%86%D9%8A-4.png',
+      type: 'static', depth: 1.0, zIndex: 120, triggerAt: 0 },
+
+    { id: 'l126-pole2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0126_%D8%B9%D9%85%D9%88%D8%AF-%D8%A7%D9%85%D8%A7%D9%85-%D8%A7%D9%84%D8%A7%D9%82%D9%88%D8%A7%D8%B3-.png',
+      type: 'static', depth: 1.0, zIndex: 121, triggerAt: 0 },
+
+    // ── BIRDS (float — appear mid-journey) ─────────────────────────
+    { id: 'l050-bird-fly',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0050_%D8%B9%D8%B5%D9%88%D8%B1-%D8%B7%D8%A7%D9%8A%D8%B1-.png',
+      type: 'float', depth: 1.0, zIndex: 130, triggerAt: 0.05 },
+
+    { id: 'l051-bird-drink',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0051_%D8%B9%D8%B5%D9%81%D9%88%D8%B1-%D8%A8%D8%B4%D8%B1%D8%A8-%D9%85%D9%8A-.png',
+      type: 'float', depth: 1.0, zIndex: 131, triggerAt: 0.05 },
+
+    // ── GROUND TEXTURES ────────────────────────────────────────────
+    { id: 'l081-ground-olive',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0081_%D8%A7%D9%84%D8%A7%D8%B1%D8%B6%D9%8A%D9%8A%D8%A9-%D8%A7%D9%84%D9%8A-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-.png',
+      type: 'static', depth: 1.0, zIndex: 135, triggerAt: 0 },
+
+    { id: 'l058-red-soil',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0058_%D8%AA%D8%B1%D8%A7%D8%A8-%D8%A7%D8%AD%D9%85%D8%B1-%D8%B9%D9%86%D8%AF-%D8%A7%D9%84%D9%86%D8%A7%D8%B3%D9%84-.png',
+      type: 'static', depth: 1.0, zIndex: 136, triggerAt: 0 },
+
+    { id: 'l150-ground-start',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0150_%D8%A7%D8%B1%D8%B6%D9%8A%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%B4%D8%AC%D8%B1%D8%A9-%D9%81%D9%8A-%D8%A7%D9%84%D8%A8%D8%AF%D8%A7%D9%8A%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 137, triggerAt: 0 },
+
+    { id: 'l149-ground-trash',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0149_%D8%A7%D8%B1%D8%B6%D9%8A%D8%A9-%D8%AB%D8%AD%D8%AA-%D8%AB%D9%84%D8%A7%D8%AB-%D8%A7%D8%B4%D8%AC%D8%A7%D8%B1-%D8%AE%D9%84%D9%81-%D8%B3%D9%84%D8%A9-%D9%84%D8%B2%D8%A8%D8%A7%D9%84%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 138, triggerAt: 0 },
+
+    // ── FOUNTAIN ───────────────────────────────────────────────────
+    { id: 'l055-fountain',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0055_%D9%85%D8%B4%D8%B1%D8%A8-%D8%A7%D9%84%D9%85%D8%A7%D8%A1-.png',
+      type: 'static', depth: 1.0, zIndex: 140, triggerAt: 0 },
+
+    { id: 'l052-cup-holder',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0052_%D9%85%D8%AB%D8%A8%D8%A9-%D8%A7%D9%84%D9%83%D8%A7%D8%B3%D8%A7%D8%AA-.png',
+      type: 'static', depth: 1.0, zIndex: 141, triggerAt: 0 },
+
+    { id: 'l053-cups',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0053_%D9%83%D8%A7%D8%B3%D8%A7%D8%AA--%D8%A7%D8%B9%D8%A7%D8%AF%D8%A9-%D8%A7%D9%84%D8%AA%D8%AF%D9%88%D9%8A%D8%B1-.png',
+      type: 'static', depth: 1.0, zIndex: 142, triggerAt: 0 },
+
+    // ── FLOWERS IN BASKETS (float) ─────────────────────────────────
+    { id: 'l082-flowers1',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0082_%D8%A7%D9%84%D9%88%D8%B1%D8%AF-%D9%81%D9%8A-%D8%A7%D9%84%D8%B3%D9%84%D8%A9-.png',
+      type: 'float', depth: 1.0, zIndex: 145, triggerAt: 0.18 },
+
+    { id: 'l083-flowers2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0083_%D9%88%D8%B1%D8%AF-%D9%81%D9%8A-%D8%B3%D9%84%D8%A9-.png',
+      type: 'float', depth: 1.0, zIndex: 146, triggerAt: 0.18 },
+
+    { id: 'l084-flowers3',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0084_%D8%A7%D9%84%D9%88%D8%B1%D8%AF-%D9%81%D9%8A-%D8%A7%D9%84%D8%B3%D9%84%D8%A9-%D9%81%D9%8A-%D8%A7%D9%84%D8%AE%D9%84%D9%81-.png',
+      type: 'float', depth: 1.0, zIndex: 147, triggerAt: 0.18 },
+
+    // ── PLASTIC BOTTLES WALL ───────────────────────────────────────
+    { id: 'l134-wall-bottles',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0134_%D8%AC%D8%AF%D8%A7%D8%B1-%D8%B9%D9%84%D9%8A%D9%87-%D8%A7%D9%84%D9%82%D9%86%D8%A7%D9%86%D9%8A-%D9%84%D8%A8%D9%84%D8%A7%D8%B3%D8%AA%D9%83-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D9%82%D8%AF%D8%B3-.png',
+      type: 'static', depth: 1.0, zIndex: 150, triggerAt: 0.28 },
+
+    { id: 'l027-bottle2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0027_%D9%82%D9%86%D9%8A%D9%86%D9%8A%D8%A9-2.png',
+      type: 'float', depth: 1.0, zIndex: 151, triggerAt: 0.10 },
+
+    { id: 'l031-bottle-recycle',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0031_%D9%82%D9%86%D9%8A%D9%86%D9%8A%D8%A9-%D8%A7%D8%B9%D8%A7%D8%AF%D8%A9-%D8%AA%D8%AF%D9%88%D9%8A%D8%B1-1.png',
+      type: 'float', depth: 1.0, zIndex: 152, triggerAt: 0.10 },
+
+    // ── VENDOR SCENE ───────────────────────────────────────────────
+    { id: 'l025-clay-pot',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0025_%D9%81%D8%AE%D8%A7%D8%B1%D8%A9-%D8%AA%D8%AD%D8%AA-%D8%B4%D8%AC%D8%B1%D8%A9-%D8%A7%D9%84%D8%B2%D9%8A%D8%AA%D9%88%D9%86-%D8%A7%D9%84%D8%A7%D9%88%D9%84%D8%A9-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%A8%D9%8A%D8%A7%D8%B9-.png',
+      type: 'static', depth: 1.0, zIndex: 155, triggerAt: 0 },
+
+    { id: 'l119-cart',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0119_%D8%A8%D8%B3%D8%B7%D8%A9.png',
+      type: 'static', depth: 1.0, zIndex: 156, triggerAt: 0 },
+
+    { id: 'l118-wheel',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0118_%D8%B9%D8%AC%D9%84-%D8%A7%D9%84%D8%A8%D8%B3%D8%B7%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 157, triggerAt: 0 },
+
+    { id: 'l117-bread',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0117_%D9%83%D8%B9%D9%83-%D8%A7%D9%84%D9%82%D8%AF%D8%B3-%D8%B9%D9%84%D9%89-%D8%A7%D9%84%D8%A8%D8%B3%D8%B7%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 158, triggerAt: 0 },
+
+    { id: 'l116-eggs',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0116_%D9%83%D8%B1%D8%AA%D9%88%D9%86%D8%A9-%D8%A7%D9%84%D8%A8%D9%8A%D8%B6-.png',
+      type: 'static', depth: 1.0, zIndex: 159, triggerAt: 0 },
+
+    { id: 'l120-old-man',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0120_%D8%AE%D8%AA%D9%8A%D8%A7%D8%B1-%D8%A7%D9%84%D9%8A-%D8%B9%D9%84%D9%89-%D8%A7%D9%84%D8%A8%D8%B3%D8%B7%D8%A9-.png',
+      type: 'static', depth: 1.0, zIndex: 160, triggerAt: 0 },
+
+    // ── WEAVING WOMAN ──────────────────────────────────────────────
+    { id: 'l061b-wall-long2',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0061_%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-%D9%84%D8%B7%D9%88%D9%8A%D9%84-.png',
+      type: 'static', depth: 1.0, zIndex: 161, triggerAt: 0 },
+
+    { id: 'l060-woman-weave',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0060_%D8%A7%D9%84%D9%85%D8%B1%D8%A7%D8%A9-%D8%A7%D9%84%D9%8A-%D8%A8%D8%AA%D8%AE%D9%8A%D8%B7-%D9%81%D9%8A-%D8%A7%D9%84%D8%AC%D8%AF%D8%A7%D8%B1-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 162, triggerAt: 0.08 },
+
+    { id: 'l057-chains',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0057_%D8%B3%D9%86%D8%A7%D8%B3%D9%84-%D8%A7%D9%84%D9%8A-%D8%B9%D9%86%D8%AF-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-%D8%A7%D9%84%D9%8A-%D8%A8%D8%AA%D8%AE%D9%8A%D8%B7-.png',
+      type: 'static', depth: 1.0, zIndex: 163, triggerAt: 0 },
+
+    { id: 'l077-hand-weave',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0077_%D9%8A%D8%AF-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-%D8%A7%D9%84%D9%8A-%D8%A8%D8%AA%D8%AE%D9%8A%D8%B7-%D8%A7%D9%84%D9%8A%D8%AF.png',
+      type: 'fade-in', depth: 1.0, zIndex: 164, triggerAt: 0.08 },
+
+    // ── BASKET GIRL ────────────────────────────────────────────────
+    { id: 'l089-basket',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0089_%D8%B5%D9%86%D9%8A%D8%A9-%D9%82%D8%B4-.png',
+      type: 'static', depth: 1.0, zIndex: 165, triggerAt: 0 },
+
+    { id: 'l090-girl-basket',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0090_%D8%A7%D9%84%D8%B5%D8%A8%D9%8A%D8%A9-%D8%A7%D9%84%D9%8A-%D9%85%D8%B9%D9%87%D8%A7-%D8%B5%D9%86%D9%8A%D8%A9-%D9%82%D8%B4-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 166, triggerAt: 0.22 },
+
+    // ── TRASH BIN ──────────────────────────────────────────────────
+    { id: 'l148-trash',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0148_%D8%AD%D8%A7%D9%88%D9%8A%D8%A9-%D8%A7%D9%84%D8%B2%D8%A8%D8%A7%D9%84%D8%A9-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 168, triggerAt: 0.38 },
+
+    { id: 'l147-trash-shadow',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0147_%D8%B8%D9%84-%D8%A7%D9%84%D8%AD%D9%88%D9%8A%D8%A7%D8%AA-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 169, triggerAt: 0.38 },
+
+    // ── YOUTH GROUP ────────────────────────────────────────────────
+    { id: 'l145-bench',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0145_%D8%A7%D9%84%D9%85%D9%82%D8%B9%D8%AF-%D8%AA%D8%AD%D8%AA-%D8%A7%D9%84%D8%B4%D8%A8%D8%A7%D8%A8-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 170, triggerAt: 0.42 },
+
+    { id: 'l144-youth',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0144_%D8%B4%D8%A8%D8%A7%D8%A8-%D8%A7%D9%84%D9%8A%D8%A7%D9%81%D8%B9%D9%8A%D9%86-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 171, triggerAt: 0.42 },
+
+    { id: 'l151-trainer',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0151_%D8%A7%D9%84%D9%85%D8%AF%D8%B1%D8%A8-%D8%A7%D9%84%D9%8A-%D8%B9%D9%86%D8%AF-%D8%A7%D9%84%D8%B4%D8%A8%D8%A7%D8%A8-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 172, triggerAt: 0.42 },
+
+    { id: 'l143-hijab',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0143_%D8%AD%D8%AC%D8%A7%D8%A8-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 173, triggerAt: 0.42 },
+
+    { id: 'l153-sign',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0153_%D9%84%D9%81%D8%AA%D8%A9-%D8%A8%D9%8A%D8%B6%D8%A7%D8%A1-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%A7%D8%A8%D9%88%D8%A7%D8%A8-%D8%A7%D9%84%D8%AB%D9%84%D8%A7%D8%AB.png',
+      type: 'static', depth: 1.0, zIndex: 174, triggerAt: 0 },
+
+    // ── HANDS ──────────────────────────────────────────────────────
+    { id: 'l139-hand-bag',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0139_%D9%8A%D8%AF-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-%D8%A7%D9%84%D9%8A-%D9%81%D9%8A%D9%87%D8%A7-%D9%83%D9%8A%D8%B3-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 175, triggerAt: 0.42 },
+
+    { id: 'l140-hand-bread',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0140_%D9%8A%D8%AF-%D8%A7%D9%84%D8%B4%D8%A8-%D8%A7%D9%84%D9%8A-%D9%81%D9%8A%D9%87%D8%A7-%D9%83%D8%B9%D9%83-%D8%A7%D9%84%D9%82%D8%AF%D8%B3-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 176, triggerAt: 0.42 },
+
+    { id: 'l142-hand-coffee',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0142_%D9%8A%D8%AF-%D8%A7%D9%84%D8%B4%D8%A8-%D8%A7%D9%84%D9%8A-%D9%81%D9%8A%D9%87%D8%A7-%D9%82%D9%87%D9%88%D8%A9-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 177, triggerAt: 0.42 },
+
+    { id: 'l138-phone',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0138_%D8%AA%D9%84%D9%81%D9%88%D9%86-%D8%AC%D9%86%D8%A8-%D8%A7%D9%84%D8%A8%D9%86%D8%AA-.png',
+      type: 'fade-in', depth: 1.0, zIndex: 178, triggerAt: 0.42 },
+
+    // ── BOY WITH KITE (float) ──────────────────────────────────────
+    { id: 'l130-boy-kite',
+      src: 'assets/images/DoC-Layers/DoC_LayersMap_0130_%D8%A7%D9%84%D8%B4%D8%A8-%D8%A7%D9%84%D9%8A-%D9%85%D8%B9%D9%87-%D8%B7%D9%8A%D8%A7%D8%B1%D8%A9-%D9%88%D8%B1%D9%82%D9%8A%D8%A9--.png',
+      type: 'float', depth: 1.0, zIndex: 180, triggerAt: 0.52 },
 
   ],
 
@@ -348,6 +673,3 @@ const STORY_DATA = {
   },
 
 };
-
-// Patch: add body text that gets appended after freeze
-// (kept here for simplicity in v1)
