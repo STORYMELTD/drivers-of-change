@@ -562,7 +562,8 @@
       img.style.width         = S.muralW + 'px';
       img.style.height        = S.muralH + 'px';
       img.style.maxWidth      = 'none';
-      img.style.opacity       = '0';
+      img.style.opacity = "0";
+      img.style.visibility = "hidden";
       D.muralLayers.appendChild(img);
     });
   }
