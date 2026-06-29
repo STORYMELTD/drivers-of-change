@@ -106,7 +106,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
 }
 #landing.out {
-  opacity: 0;
+  opacity: 1;
   transform: scale(1.04);
   pointer-events: none;
 }
@@ -289,7 +289,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   position: fixed;
   inset: 0;
   z-index: 90;
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
   transition: opacity 0.7s var(--ease-out);
   background: #e87b3a; /* orange bg — matches illustration */
@@ -376,7 +376,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   max-width: none;
   display: block;
   /* Hidden until layers assembled — base only shows if layers fail */
-  opacity: 0;
+  opacity: 1;
 }
 
 /* ─────────────────────────────────────────
@@ -389,7 +389,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   height: 100vh;
   pointer-events: none;
   /* Invisible until scroll engine initializes — prevents white flash */
-  opacity: 0;
+  opacity: 1;
 
 }
 
@@ -400,7 +400,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   height: 100vh;
   max-width: none;
   pointer-events: none;
-  opacity: 0; /* each layer fades in after GSAP positions it */
+  opacity: 1; /* each layer fades in after GSAP positions it */
 }
 
 /* ─────────────────────────────────────────
@@ -459,7 +459,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   overflow: hidden;
   pointer-events: all;
   /* Start invisible and shifted down */
-  opacity: 0;
+  opacity: 1;
   transform: translateY(24px);
   /* GSAP controls animation */
 }
@@ -539,7 +539,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
   transition: opacity 0.4s;
 }
@@ -622,7 +622,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   background: rgba(8,16,10,0.88);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(196,163,90,0.12);
-  opacity: 0;
+  opacity: 1;
   transform: translateY(-100%);
   transition: opacity 0.5s, transform 0.5s var(--ease-out);
 }
@@ -746,11 +746,11 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 
 /* Force all individual layers invisible until GSAP reveals them */
 .mural-layer {
-  opacity: 0;
+  opacity: 1;
 }
 
 /* All layers start invisible — GSAP reveals them */
 .mural-layers .mural-layer {
-  opacity: 0;
+  opacity: 1;
 
 }
