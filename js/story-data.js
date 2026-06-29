@@ -498,3 +498,30 @@ const STORY_DATA = {
 };
 
 Object.freeze(STORY_DATA);
+
+// ── PATCH: Add body text to chapters for chapter boxes ──
+// (Injected after freeze — add before Object.freeze in production)
+STORY_DATA.chapters[0].body = [
+  'Environmental problems in East Jerusalem are not only technical failures.',
+  'A missed waste-collection route, an overflowing sewage line, a street without proper infrastructure — all point to unequal planning, unequal budgets, and unequal access to environmental rights.',
+];
+STORY_DATA.chapters[1].body = [
+  'In 2016, East Jerusalem received only 10% of hygiene workers, 7% of garbage containers, and 6% of waste collection routes.',
+  'Only 13% of annexed East Jerusalem land was left for Palestinian building. In 2013, only 10.1% of the Jerusalem Municipality budget benefited Palestinians.',
+];
+STORY_DATA.chapters[2].body = [
+  '59 women joined zero-waste workshops. 55 women learned plastic-bag upcycling — turning pollution into practical craft.',
+  '900 cloth bags were distributed across the Old City, Al-Ayzareh, and Al-Ram. "Start with your environment; be the first to drive the change."',
+];
+STORY_DATA.chapters[3].body = [
+  'More than 300 students from grades 7–10 across ten schools joined environmental clubs, awareness campaigns, and gardening projects.',
+  'The Terra Santa pilot introduced a raised herbal garden, compost tumbler, and aquaponic green wall. Students prepared soil, planted, and learned.',
+];
+STORY_DATA.chapters[4].body = [
+  'Ten dialogue meetings brought together community leaders, women\'s organizations, local businesses, and municipal representatives.',
+  'The legal study framed environmental discrimination through international human rights law — addressing the right to water, land rights, and the prohibition on altering occupied territory.',
+];
+STORY_DATA.chapters[5].body = [
+  'Nine community workshops reached 147 participants. Six awareness workshops reached 97 more.',
+  'The project\'s most important outcome is the repeated request from communities, students, and teachers for more. That demand is itself a driver of change.',
+];
