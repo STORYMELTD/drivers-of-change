@@ -390,7 +390,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   pointer-events: none;
   /* Invisible until scroll engine initializes — prevents white flash */
   opacity: 0;
-  visibility: hidden;
+
 }
 
 .mural-layer {
@@ -752,5 +752,5 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* All layers start invisible — GSAP reveals them */
 .mural-layers .mural-layer {
   opacity: 0;
-  visibility: hidden;
+
 }
