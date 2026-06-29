@@ -106,7 +106,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
 }
 #landing.out {
-  opacity: 0;
+  opacity: 1;
   transform: scale(1.04);
   pointer-events: none;
 }
@@ -375,7 +375,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   width: auto;
   max-width: none;
   display: block;
-  /* Hidden until layers assembled — base only shows if layers fail */
+  /* Base mural always visible as foundation */
   opacity: 1;
 }
 
