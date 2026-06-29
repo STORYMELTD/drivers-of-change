@@ -60,6 +60,7 @@
   // ══════════════════════════════════════════
   function init() {
     // All layers invisible until scroll engine positions them
+    document.body.style.overflow = 'hidden';
     D.muralLayers.style.opacity    = '0';
     D.muralLayers.style.visibility = 'hidden';
 
