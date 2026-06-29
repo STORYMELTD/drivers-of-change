@@ -77,65 +77,30 @@
   // Runs on its own timer — does NOT wait for mural to load
   // ══════════════════════════════════════════
   function runLoader() {
-    // Position gear at Illustrator convergence point
+        // Position gear at Illustrator convergence point
     D.loaderGearWrap.style.left = ((IL_GEAR_X / IL_CANVAS_W) * 100) + '%';
     D.loaderGearWrap.style.top  = ((IL_GEAR_Y / IL_CANVAS_H) * 100) + '%';
 
-    // Build full asset list: track + all layers
-    var assets = ['assets/images/gear track long-01.png'];
-    STORY_DATA.layers.forEach(function(layer) { assets.push(layer.src); });
+    // Preload track only - layers load on demand
+    var trackImg = new Image();
+    trackImg.onload = function() { S.trackImgEl = trackImg; drawTrack(); };
+    trackImg.src = 'assets/images/gear track long-01.png';
 
-    var total = assets.length;
-    var loaded = 0;
+    // Timer-based loader - 3 seconds minimum
+    var pct = 0;
+    var ticker = setInterval(function() {
+      pct = Math.min(pct + (Math.random() * 9 + 2), 94);
+      if (D.loaderPct) D.loaderPct.textContent = Math.round(pct) + '%';
+    }, 100);
 
-    function updateProgress() {
-      loaded++;
-      var pct = Math.round((loaded / total) * 100);
-      if (D.loaderPct) D.loaderPct.textContent = pct + '%';
-      if (loaded >= total) done();
-    }
-
-    function done() {
+    setTimeout(function() {
+      clearInterval(ticker);
       if (D.loaderPct) D.loaderPct.textContent = '100%';
       setTimeout(function() {
         D.loader.classList.add('out');
         S.phase = 'landing';
       }, 350);
-    }
-
-    // Preload in batches of 10 to avoid freezing browser
-    var batchSize = 10;
-    var index = 0;
-
-    function loadBatch() {
-      var end = Math.min(index + batchSize, assets.length);
-      var batchDone = 0;
-      var batchTotal = end - index;
-
-      for (var i = index; i < end; i++) {
-        (function(src) {
-          var img = new Image();
-          var finish = function() {
-            if (src.indexOf('gear track') !== -1 && img.complete) {
-              S.trackImgEl = img; drawTrack();
-            }
-            updateProgress();
-            batchDone++;
-            if (batchDone >= batchTotal) {
-              index += batchSize;
-              if (index < assets.length) {
-                setTimeout(loadBatch, 50);
-              }
-            }
-          };
-          img.onload = finish;
-          img.onerror = finish;
-          img.src = src;
-        })(assets[i]);
-      }
-    }
-
-    loadBatch();
+    }, 3000);
   }
 
   // ══════════════════════════════════════════
