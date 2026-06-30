@@ -450,6 +450,7 @@
   }
 
   function buildLayers() {
+    console.log("muralW:", S.muralW, "muralH:", S.muralH);
     STORY_DATA.layers.forEach(layer => {
       const img = document.createElement('img');
       img.className           = 'mural-layer';
