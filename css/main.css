@@ -123,32 +123,24 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* City skyline — bottom, biased right, sits on the track */
 .landing__quds {
   position: absolute;
-  bottom: var(--track-h);
+  bottom: 26%;            /* sits on the crenellated wall edge */
   right: 0;
   width: 80%;
   max-width: 1480px;
   height: auto;
-  z-index: 1;
+  z-index: 3;
   pointer-events: none;
 }
 
-/* Track strip + drive button live at the bottom */
-.landing__bottom {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: var(--track-h);
-  z-index: 2;
-}
+/* Wall track renders at natural height: crenellated edge ~71%, orange body fills below */
+.landing__bottom { display: contents; }
 .landing__track {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: var(--track-h);
-  object-fit: cover;
-  object-position: top center;
+  height: auto;
+  z-index: 2;
 }
 
 /* Gear — center-left, slow spin, soft shadow */
@@ -251,7 +243,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* Logos — bottom-left */
 .landing__logos {
   position: absolute;
-  bottom: calc(var(--track-h) + 16px);
+  bottom: 5%;
   left: 3.5%;
   height: 40px;
   width: auto;
@@ -263,7 +255,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* Drive-through — bottom-right white pill */
 .drive-btn {
   position: absolute;
-  bottom: calc(var(--track-h) + 26px);
+  bottom: 18%;
   right: 4.5%;
   z-index: 6;
   padding: 11px 32px;
