@@ -12,13 +12,16 @@
   const GEAR_MURAL_SCALE = 0.60;
   const GEAR_INTRO_SCALE = 1.15;  // initial (pre-scroll) gear is 15% larger; rolling size unchanged
   const TRACK_H_PX       = 72;
-  // ── Bab→mural bridge (Stage C) tunables ──
-  const BAB_ROLL_END     = 0.40;  // p where the gear reaches center & stops traveling
-  const BAB_IDLE_SPIN    = 18;    // deg of extremely-slow idle spin over roll-end → 1
-  const BAB_HIRES_AT     = 0.38;  // p to swap #babImg to hi-res, just before the zoom
-  const BAB_FADE_START   = 0.90;  // p where bab crossfades out into the mural
-  const BAB_WIN_OX       = 0.506; // window-origin x as fraction of the gate image (measured)
-  const BAB_WIN_OY       = 0.35;  // window-origin y as fraction of the gate image (measured)
+  // ── Bab→mural bridge tunables ──
+  const BAB_ROLL_END       = 0.40;  // phase-1 p where the gear reaches the window & stops traveling
+  const BAB_IDLE_SPIN      = 18;    // deg of extremely-slow idle spin over roll-end → 1
+  const BAB_HIRES_AT       = 0.38;  // p to swap #babImg to hi-res, just before the zoom
+  const BAB_FADE_START     = 0.40;  // phase-1 p where the gate begins crossfading out (→ 1.0)
+  const BAB_WIN_OX         = 0.506; // window-origin x as fraction of the gate image (measured)
+  const BAB_WIN_OY         = 0.35;  // window-origin y as fraction of the gate image (measured)
+  const BAB_SLIDE_START    = 0.80;  // slide mode: p where the city starts sliding in from the right
+  const GEAR_ENTER_FRAC    = 0.12;  // phase-2: fraction of the pan over which the gear rolls in from the edge
+  const GEAR_SETTLE_X_FRAC = 0.50;  // phase-2: gear settle center as a fraction of vw (single knob)
   const IL_CANVAS_W      = 1496;  // UX artboard width  (matches loader reference)
   const IL_CANVAS_H      = 807;   // UX artboard height (matches loader reference)
   const IL_GEAR_X        = 1050;
@@ -31,6 +34,9 @@
     scrollProgress: 0, currentChapter: -1,
     panelOpen: false, audioEnabled: false,
     trackImgEl: null,
+    reveal: 'slide',            // 'slide' (default) | 'crossfade' — from ?reveal=crossfade
+    babZoomPx: 0, panPx: 0,     // phase-1 (gate) and phase-2 (pan) scroll distances
+    st1: null, st2: null,       // the two phase ScrollTriggers (for resize re-pose)
   };
 
   const D = {
@@ -122,12 +128,35 @@
     setTimeout(() => {
       D.landing.style.display = 'none';
       D.babSection.classList.add('visible');
-      document.body.style.overflow = '';   // enable native scroll for the pinned bab
+      document.body.style.overflow = '';   // enable native scroll
       window.scrollTo(0, 0);
       var hi = new Image(); hi.src = 'assets/images/bab alamoud-hi.webp';  // preload zoom tier
+      // slide is the production reveal; crossfade kept only behind ?reveal=crossfade
+      S.reveal = (new URLSearchParams(location.search).get('reveal') === 'crossfade') ? 'crossfade' : 'slide';
+      applyRevealZ();
       seatGearOnBab();
-      initBabScroll();
+      buildJourney();
     }, 900);
+  }
+
+  // Reveal mode z-order. The gate (#babSection) is a fixed overlay; the city
+  // (#muralViewport) sits behind it for crossfade, or above it for slide so it
+  // can slide in over the gate. #driverLayer (gear) always stays on top.
+  function applyRevealZ() {
+    D.muralViewport.style.zIndex = (S.reveal === 'slide') ? '30' : '';  // '' → CSS default (10)
+  }
+
+  // Build the whole journey up front: the city sits behind the gate overlay from
+  // scroll 0, and #storyStage owns one continuous scroll (gate zoom → city pan).
+  function buildJourney() {
+    if (typeof ScrollTrigger === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+    S.phase = 'mural';                 // journey is live; input handlers engage
+    D.storyNav.classList.add('visible');
+    scaleMural();                      // sizes mural + sets #storyStage height (incl. babZoomPx)
+    buildLayers();
+    initScrollEngine();                // the two phase triggers + layer/chapter triggers
+    ScrollTrigger.refresh();
   }
 
   // Base (un-scaled) gear pixel size for the current viewport — single source
@@ -152,50 +181,12 @@
     gsap.set(D.muralGear, { rotation: 0 });
   }
 
-  // Option 1 rest pose: the persistent gear stays in #driverLayer (fixed) at
-  // screen-center, mural rolling size (0.60), seated on the track. This is both
-  // the bridge's p≥0.40 hold pose and the gear's home for the entire mural —
-  // it only spins from here; it never travels.
-  function restGearCenter() {
-    if (!D.muralGear) return;
-    var size = gearBasePx() * GEAR_MURAL_SCALE;   // 0.60
-    D.muralGear.style.position = 'fixed';
-    D.muralGear.style.width    = size + 'px';
-    D.muralGear.style.height   = size + 'px';
-    D.muralGear.style.left     = (window.innerWidth / 2 - size / 2) + 'px';
-    D.muralGear.style.bottom   = Math.round(TRACK_H_PX * 0.15) + 'px';
-  }
-
   // ══════════════════════════════════════════
-  // SCREEN 3 — BAB AL-AMOUD
-  // Pinned ~300vh; scrub scroll progress p drives the gate zoom, then hands off
-  // to the mural in ONE continuous native scroll — no wheel accumulator, no cut.
-  // (Stage B. The full gear scale/roll/rotate choreography lands in Stage C as
-  //  an expansion of driveBab().)
+  // SCREEN 3 — BAB AL-AMOUD  (PHASE 1: gate overlay zoom)
+  // The gate is a fixed overlay; the city sits behind it from scroll 0. p (0..1)
+  // over the first babZoomPx of scroll drives the gear-on-gate choreography, the
+  // deep window zoom, and the reveal (mode-specific city positioning + gate fade).
   // ══════════════════════════════════════════
-  function initBabScroll() {
-    if (typeof ScrollTrigger === 'undefined') return;
-    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
-
-    ScrollTrigger.create({
-      trigger:     D.babSection,
-      start:       'top top',
-      end:         function () { return '+=' + (window.innerHeight * 3); },  // ~300vh
-      pin:         true,
-      pinSpacing:  true,
-      scrub:       true,
-      onUpdate:    function (self) { driveBab(self.progress); },
-      onLeave:     function () { handoffToMural(); },
-    });
-
-    ScrollTrigger.refresh();
-  }
-
-  // p (0..1) drives the whole bridge (Stage C).
-  //   0     → 0.40 : gear shrinks 1.15→0.60 while rolling right to screen-center,
-  //                   rotating circumference-accurately (SLOW).
-  //   0.40  → 1.00 : gear holds center, idle-spins ~18°; the gate scene deep-zooms
-  //                   1→10 about the window origin and crossfades into the mural.
   function driveBab(p) {
     if (!D.muralGear) return;
     var base    = gearBasePx();
@@ -244,7 +235,18 @@
       D.babImg.style.transform = 'scale(1)';
     }
 
-    // crossfade bab out so the zoom dissolves into the mural behind it
+    // REVEAL — position the city (#muralWrap) behind/around the gate per mode.
+    if (S.reveal === 'slide') {
+      // city held off-screen right, then slides in to the left edge (x=0)
+      var sx = p < BAB_SLIDE_START ? vw
+        : vw * (1 - (p - BAB_SLIDE_START) / (1 - BAB_SLIDE_START));
+      gsap.set(D.muralWrap, { x: sx });
+    } else {
+      gsap.set(D.muralWrap, { x: 0 });   // crossfade: city pinned at its left edge
+    }
+
+    // gate crossfade out over 0.40 → 1.0 (reveals the city in crossfade; in slide
+    // the city slides over the fading gate)
     D.babSection.style.opacity = p <= BAB_FADE_START
       ? 1
       : 1 - (p - BAB_FADE_START) / (1 - BAB_FADE_START);
@@ -282,22 +284,37 @@
     D.babImg.src = 'assets/images/bab alamoud-hi.webp';
   }
 
-  // Hand off to the mural when the bab pin completes (p=1). One-way (S.babDone).
-  // No scrollTo / overflow toggling — native scroll is already live and simply
-  // continues into #storyStage, whose triggers begin at progress 0. The mural
-  // drive and chapter triggers are unchanged.
-  // The bab gear has faded out at the gate window (nothing carried over). The
-  // mural's own gear re-enters from the LEFT EDGE and rolls to center over the
-  // first ~12% of mural scroll (set up in initScrollEngine), rotating fresh.
-  function handoffToMural() {
-    if (S.babDone) return;
-    S.babDone = true;
-    S.phase   = 'mural';
-    D.storyNav.classList.add('visible');
-    scaleMural();
-    buildLayers();
-    initScrollEngine();   // places the fresh gear at the left edge + entrance roll-in
-    ScrollTrigger.refresh();
+  // PHASE 2 (pan): p2 (0..1) over panPx of scroll. Pans the city horizontally;
+  // the gear (which faded out at the gate window in phase 1) re-enters from the
+  // very LEFT EDGE, rolls to its settle x over the first GEAR_ENTER_FRAC of the
+  // pan, then holds and spins. Reads sizes live so resize stays in sync.
+  function panUpdate(p2) {
+    if (!D.muralGear) return;
+    var vw      = window.innerWidth;
+    var size    = gearBasePx() * GEAR_MURAL_SCALE;     // 0.60 rolling size
+    var seat    = Math.round(TRACK_H_PX * 0.15);
+    var settleX = vw * GEAR_SETTLE_X_FRAC;             // settle center (single knob)
+
+    // pan the city
+    gsap.set(D.muralWrap, { x: -p2 * S.panPx });
+
+    // gear entrance: center travels left-edge (x=0) → settleX over the first
+    // GEAR_ENTER_FRAC, then holds.
+    var enter = Math.min(p2 / GEAR_ENTER_FRAC, 1);
+    var cx    = enter * settleX;
+    D.muralGear.style.opacity  = '1';
+    D.muralGear.style.position = 'fixed';
+    D.muralGear.style.width    = size + 'px';
+    D.muralGear.style.height   = size + 'px';
+    D.muralGear.style.bottom   = seat + 'px';
+    D.muralGear.style.left     = (cx - size / 2) + 'px';
+
+    // spin: circumference-accurate to the pan, fresh from 0
+    var muralDegrees = (S.panPx / (Math.PI * size)) * 360;
+    gsap.set(D.muralGear, { rotation: p2 * muralDegrees });
+
+    S.scrollProgress = p2;
+    onScrollUpdate(p2);
   }
 
   // ══════════════════════════════════════════
@@ -326,7 +343,10 @@
     D.muralImg.style.maxWidth = 'none';
     D.muralImg.style.opacity  = '1'; // base mural always visible
 
-    D.storyStage.style.height = (S.muralW - vw + vh) + 'px';
+    // #storyStage owns ALL scroll: gate zoom (babZoomPx) + city pan (panPx) + vh.
+    S.babZoomPx = vh * 3;                 // was the gate pin distance
+    S.panPx     = S.muralW - vw;          // horizontal pan distance
+    D.storyStage.style.height = (S.babZoomPx + S.panPx + vh) + 'px';
 
     D.muralLayers.style.width  = S.muralW + 'px';
     D.muralLayers.style.height = vh + 'px';
@@ -334,11 +354,8 @@
     D.gearSystem.style.width  = S.muralW + 'px';
     D.gearSystem.style.height = TRACK_H_PX + 'px';
 
-    // The persistent driver gear is posed by driveBab() during the bab bridge
-    // and rests at screen-center/0.60 in the mural (Option 1). Only re-apply that
-    // rest pose here when the mural is live, so a resize keeps it centered;
-    // during loader/landing/bab the bridge owns the gear.
-    if (S.phase === 'mural') restGearCenter();
+    // The gear is posed entirely by the phase triggers (driveBab / panUpdate);
+    // scaleMural never positions it.
 
     drawTrack();
 
@@ -385,53 +402,25 @@
   function initScrollEngine() {
     gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-    const vw          = window.innerWidth;
-    const travelX     = -(S.muralW - vw);
-    const totalTravel = S.muralW - vw;
-    const gearSmPx    = gearBasePx() * GEAR_MURAL_SCALE;   // 0.60 rest/rolling size
-
-    // 1. BASE MURAL PAN
-    gsap.to(D.muralWrap, {
-      x: travelX, ease: 'none',
-      scrollTrigger: {
-        trigger: D.storyStage, start: 'top top', end: 'bottom bottom', scrub: true,
-        onUpdate: self => { S.scrollProgress = self.progress; onScrollUpdate(self.progress); },
-      }
+    // PHASE 1 — gate overlay zoom. Spans the first babZoomPx of #storyStage scroll.
+    S.st1 = ScrollTrigger.create({
+      trigger: D.storyStage,
+      start:   'top top',
+      end:     () => '+=' + S.babZoomPx,
+      scrub:   true,
+      onUpdate: self => driveBab(self.progress),
     });
 
-    // (Stage C fix) The bab gear faded out at the window — a FRESH gear re-enters
-    // here from the LEFT EDGE and rolls to center over the first ~12% of mural
-    // scroll, then holds center and only spins. No angle carry; it rolls fresh.
-    const seat = Math.round(TRACK_H_PX * 0.15);
-    D.muralGear.style.opacity  = '1';                 // restore (was faded at the window)
-    D.muralGear.style.position = 'fixed';
-    D.muralGear.style.width    = gearSmPx + 'px';
-    D.muralGear.style.height   = gearSmPx + 'px';
-    D.muralGear.style.bottom   = seat + 'px';
-    D.muralGear.style.left     = (-gearSmPx / 2) + 'px';   // left edge, half cropped
+    // PHASE 2 — horizontal city pan + gear entrance. Spans the remaining panPx.
+    S.st2 = ScrollTrigger.create({
+      trigger: D.storyStage,
+      start:   () => 'top+=' + S.babZoomPx + ' top',
+      end:     'bottom bottom',
+      scrub:   true,
+      onUpdate: self => panUpdate(self.progress),
+    });
 
-    // ENTRANCE: roll left edge → center across the first ~12% of mural scroll.
-    gsap.fromTo(D.muralGear,
-      { left: -gearSmPx / 2 },
-      { left: (vw / 2 - gearSmPx / 2), ease: 'none',
-        scrollTrigger: {
-          trigger: D.storyStage, start: 'top top',
-          end: () => '+=' + (totalTravel * 0.12), scrub: true,
-        }
-      });
-
-    // GEAR ROTATION: fresh from 0, circumference-accurate to the mural pan, clockwise.
-    const circumference = Math.PI * gearSmPx;
-    const muralDegrees  = (totalTravel / circumference) * 360;
-    gsap.fromTo(D.muralGear,
-      { rotation: 0 },
-      { rotation: muralDegrees, ease: 'none',
-        scrollTrigger: {
-          trigger: D.storyStage, start: 'top top', end: 'bottom bottom', scrub: true,
-        }
-      });
-
-    // 5. LAYERS — reveal container, then animate (float / sway / fade-in)
+    // LAYERS — reveal container, then animate (float / sway / fade-in).
     D.muralLayers.style.visibility = 'visible';
     gsap.to(D.muralLayers, { opacity: 1, duration: 0.5, delay: 0.2 });
 
@@ -443,8 +432,6 @@
       // full-canvas-origin layers must move exactly with the mural or the
       // composition breaks). Layers are children of #muralWrap, so they ride
       // the base pan automatically — no per-layer x-tween needed.
-      // (The old tween read layer.depth, which is undefined, producing x:NaN
-      //  and corrupting the float/sway transforms on the same elements.)
 
       if (layer.type === 'sway') {
         gsap.to(el, { rotation: 1.5, repeat: -1, yoyo: true, duration: 3 + Math.random() * 2, ease: 'sine.inOut', delay: Math.random() * 2, transformOrigin: '50% 100%' });
@@ -456,37 +443,36 @@
         });
       }
 
-      // Fade in
+      // Fade in — CRITICAL: offset by babZoomPx so the pan's 0..1 maps past the gate zoom.
       if (layer.triggerAt === 0) {
         gsap.to(el, { opacity: 1, duration: 0.9, delay: 0.3 });
       } else {
         ScrollTrigger.create({
           trigger: D.storyStage,
-          start: () => 'top+=' + (layer.triggerAt * totalTravel) + 'px top',
+          start: () => 'top+=' + (S.babZoomPx + layer.triggerAt * S.panPx) + 'px top',
           onEnter:     () => gsap.to(el, { opacity: 1, duration: 0.9 }),
           onLeaveBack: () => gsap.to(el, { opacity: 0, duration: 0.5 }),
         });
       }
     });
 
-    // 6. CHAPTER BOXES: animate in/out as gear enters/exits zone
+    // CHAPTER BOXES — animate in/out by pan zone. CRITICAL: offset by babZoomPx,
+    // else every chapter fires during the gate zoom.
     STORY_DATA.chapters.forEach((ch, i) => {
       const box = document.getElementById('cbox-' + i);
       if (!box) return;
 
-      const enterScroll = ch.scrollStart * totalTravel;
-      const exitScroll  = ch.scrollEnd   * totalTravel;
-      const buf         = totalTravel * 0.015;
+      const buf = S.panPx * 0.015;
 
       ScrollTrigger.create({
         trigger: D.storyStage,
-        start: () => 'top+=' + (enterScroll + buf) + 'px top',
+        start: () => 'top+=' + (S.babZoomPx + ch.scrollStart * S.panPx + buf) + 'px top',
         onEnter:     () => gsap.to(box, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }),
         onLeaveBack: () => gsap.to(box, { opacity: 0, y: 24, duration: 0.4 }),
       });
       ScrollTrigger.create({
         trigger: D.storyStage,
-        start: () => 'top+=' + (exitScroll - buf) + 'px top',
+        start: () => 'top+=' + (S.babZoomPx + ch.scrollEnd * S.panPx - buf) + 'px top',
         onEnter:     () => gsap.to(box, { opacity: 0, y: -24, duration: 0.5, ease: 'power2.in' }),
         onLeaveBack: () => gsap.to(box, { opacity: 1, y: 0, duration: 0.4 }),
       });
@@ -548,8 +534,9 @@
       dot.title     = ch.title;
       dot.addEventListener('click', () => {
         if (S.phase !== 'mural') return;
-        const max = document.body.scrollHeight - window.innerHeight;
-        gsap.to(window, { scrollTo: ch.scrollStart * max, duration: 1.2, ease: 'power2.inOut' });
+        // target lands in the PAN region (past the gate zoom)
+        const target = S.babZoomPx + ch.scrollStart * S.panPx;
+        gsap.to(window, { scrollTo: target, duration: 1.2, ease: 'power2.inOut' });
       });
       D.navDots.appendChild(dot);
     });
@@ -708,9 +695,14 @@
     }, { passive: true });
 
     window.addEventListener('resize', debounce(function() {
-      scaleMural();
+      scaleMural();   // recomputes muralW, babZoomPx, panPx, #storyStage height
       drawTrack();
-      if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+      if (typeof ScrollTrigger !== 'undefined') {
+        ScrollTrigger.refresh();   // recomputes function-form starts/ends + offsets
+        // re-pose the gear/city for the currently-active phase so resize won't desync
+        if (S.st1 && S.st1.isActive)      driveBab(S.st1.progress);
+        else if (S.st2 && S.st2.isActive) panUpdate(S.st2.progress);
+      }
     }, 200));
   }
 
