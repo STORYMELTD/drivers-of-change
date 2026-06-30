@@ -36,13 +36,18 @@ Three files do all the work:
 ### The mural scroll engine (`initScrollEngine`, the core)
 The page has tall vertical scroll height (`#storyStage` height = mural width − viewport width + viewport height); vertical scroll is translated into horizontal pan of `#muralWrap`. ScrollTrigger orchestrates, all `scrub: true`:
 1. Base mural pans left (`x`).
-2. Gear scales from intro size → rolling size over first ~16% of travel.
-3. Gear rolls left along the track (`left` = progress × totalTravel).
-4. Gear rotates with circumference-accurate degrees so it appears to roll, not slide.
-5. Layers fade/float/sway in.
-6. Chapter boxes animate in/out by scroll zone.
+2. Gear re-enters from the **left edge** and rolls to center over the first ~12% of mural scroll, then holds center (see bridge below).
+3. Gear rotates with circumference-accurate degrees (fresh from 0) so it appears to roll, not slide.
+4. Layers fade/float/sway in.
+5. Chapter boxes animate in/out by scroll zone.
 
 **Locked design decision (do not reintroduce):** all layers have depth 1.0 — *no per-layer horizontal parallax*. Layers are children of `#muralWrap` and ride the base pan automatically. A removed tween read a non-existent `layer.depth`, producing `x:NaN` and corrupting the float/sway transforms (see comment at `main.js` ~333 and commit `6249543`). Adding per-layer x-tweens breaks the composition.
+
+### The bab→mural gear bridge (`driveBab`, the persistent gear)
+The gate (`#babSection`) is pinned ~300vh and scrubbed by progress `p` (`initBabScroll`). The single `#muralGear` node lives in a fixed overlay `#driverLayer`. `driveBab(p)`:
+- **p 0→0.40:** gear starts big (`1.15×` base) at the left edge (~50% cropped), shrinks to `0.60×` while rolling right to the **gate window's on-screen x** (`babWindowOrigin().x`, *not* 50%vw), rotating circumference-accurately through the shrink (`rollAngle`).
+- **p 0.40→1.0:** gear holds, idle-spins ~18°; the gate `#babImg` deep-zooms `1→10` about the computed window origin (`BAB_WIN_OX/OY` fractions of the *rendered* contain rect — JS owns the origin, not CSS). Hi-res swap at `p≈0.38`; bab crossfades out `0.90→1.0`.
+- **Handoff (the current model — NOT a center-rest carry):** the gear **fades out at the window** (opacity `0.80→0.92`); **nothing is carried into the mural**. The mural's gear then **re-enters fresh from the left edge** and rolls to center (first ~12%), rotating from 0. Tunables are named constants at the top of `main.js` (`BAB_ROLL_END`, `BAB_IDLE_SPIN`, `BAB_HIRES_AT`, `BAB_FADE_START`, `BAB_WIN_OX/OY`). `gearBasePx() = GEAR_FULL_PX·(vh/MURAL_H)·2 ≈ 0.5155·vh`; rolling size = `0.60×` that.
 
 ### Coordinate system
 Everything scales off the mural. `scaleMural()` sets `S.muralScale = viewportHeight / MURAL_H`, then `S.muralW = MURAL_W × scale`. Layers, hotspots, and chapter boxes are positioned in **percentages** of the mural (`xPct`/`yPct`/`wPct` in `story-data.js`, `position.left/top` for hotspots) and converted to pixels on every layout/resize. So adding a hotspot or layer = adding a percentage-positioned entry to `STORY_DATA`, nothing else.

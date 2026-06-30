@@ -329,7 +329,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   height: 100%;
   object-fit: contain;
   object-position: center bottom; /* whole gate sits over the orange bg */
-  transform-origin: 50% 28%;     /* zoom target: top-center gate window */
+  /* transform-origin is owned by JS (driveBab → babWindowOrigin), set inline */
   will-change: transform;
 }
 

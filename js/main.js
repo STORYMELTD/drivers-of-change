@@ -17,8 +17,8 @@
   const BAB_IDLE_SPIN    = 18;    // deg of extremely-slow idle spin over roll-end → 1
   const BAB_HIRES_AT     = 0.38;  // p to swap #babImg to hi-res, just before the zoom
   const BAB_FADE_START   = 0.90;  // p where bab crossfades out into the mural
-  const BAB_WIN_OX       = 0.50;  // window-origin x as fraction of the gate image
-  const BAB_WIN_OY       = 0.34;  // window-origin y as fraction of the gate image
+  const BAB_WIN_OX       = 0.506; // window-origin x as fraction of the gate image (measured)
+  const BAB_WIN_OY       = 0.35;  // window-origin y as fraction of the gate image (measured)
   const IL_CANVAS_W      = 1496;  // UX artboard width  (matches loader reference)
   const IL_CANVAS_H      = 807;   // UX artboard height (matches loader reference)
   const IL_GEAR_X        = 1050;
@@ -31,7 +31,6 @@
     scrollProgress: 0, currentChapter: -1,
     panelOpen: false, audioEnabled: false,
     trackImgEl: null,
-    gearAngle: 0,   // persistent driver rotation; carried bab → mural (no snap)
   };
 
   const D = {
@@ -204,7 +203,7 @@
     var sizeEnd = base * GEAR_MURAL_SCALE;   // 0.60
     var vw      = window.innerWidth;
     var seat    = Math.round(TRACK_H_PX * 0.15);
-    var rollDist = vw / 2;                    // center travels left-edge → 50%
+    var rollDist = babWindowOrigin().x;       // gear center parks at the window's on-screen x
     var size, centerX, angle;
 
     if (p <= BAB_ROLL_END) {
@@ -226,7 +225,11 @@
     D.muralGear.style.left     = (centerX - size / 2) + 'px';
     D.muralGear.style.bottom   = seat + 'px';
     gsap.set(D.muralGear, { rotation: angle });
-    S.gearAngle = angle;                      // carried into the mural (no snap)
+
+    // fade the gear OUT at the window before the crossfade completes — nothing is
+    // carried into the mural; a fresh gear re-enters from the left edge there.
+    D.muralGear.style.opacity = p <= 0.80 ? 1
+      : (p >= 0.92 ? 0 : 1 - (p - 0.80) / 0.12);
 
     if (p >= BAB_HIRES_AT) swapBabHiRes();
 
@@ -283,19 +286,25 @@
   // No scrollTo / overflow toggling — native scroll is already live and simply
   // continues into #storyStage, whose triggers begin at progress 0. The mural
   // drive and chapter triggers are unchanged.
-  // (Stage C) Seamless: the gear is already at its mural rest pose (center, 0.60,
-  // angle S.gearAngle). It STAYS in #driverLayer — never returns to #gearSystem —
-  // and the mural rotation continues from S.gearAngle. No snap.
+  // The bab gear has faded out at the gate window (nothing carried over). The
+  // mural's own gear re-enters from the LEFT EDGE and rolls to center over the
+  // first ~12% of mural scroll (set up in initScrollEngine), rotating fresh.
   function handoffToMural() {
     if (S.babDone) return;
     S.babDone = true;
     S.phase   = 'mural';
     D.storyNav.classList.add('visible');
-    restGearCenter();
     scaleMural();
     buildLayers();
-    initScrollEngine();
+    initScrollEngine();   // places the fresh gear at the left edge + entrance roll-in
     ScrollTrigger.refresh();
+
+    // TEMP VERIFY (remove before final): bridge geometry at the live viewport
+    var _o = babWindowOrigin(), _vw = window.innerWidth, _vh = window.innerHeight,
+        _sz = gearBasePx() * GEAR_MURAL_SCALE, _pc = _o.x;
+    console.log('[BRIDGE VERIFY] window origin px=(' + _o.x.toFixed(1) + ',' + _o.y.toFixed(1) +
+      ') %=(' + (_o.x / _vw * 100).toFixed(2) + '%vw,' + (_o.y / _vh * 100).toFixed(2) + '%vh) | ' +
+      'gear park left=' + (_pc - _sz / 2).toFixed(1) + 'px center=' + (_pc / _vw * 100).toFixed(2) + '%vw');
   }
 
   // ══════════════════════════════════════════
@@ -397,20 +406,33 @@
       }
     });
 
-    // (Stage C / Option 1) No gear scale tween and no left-travel tween — the bab
-    // bridge already delivered the gear to its rest pose (screen-center, 0.60),
-    // where it only spins while the mural pans underneath.
-    restGearCenter();
+    // (Stage C fix) The bab gear faded out at the window — a FRESH gear re-enters
+    // here from the LEFT EDGE and rolls to center over the first ~12% of mural
+    // scroll, then holds center and only spins. No angle carry; it rolls fresh.
+    const seat = Math.round(TRACK_H_PX * 0.15);
+    D.muralGear.style.opacity  = '1';                 // restore (was faded at the window)
+    D.muralGear.style.position = 'fixed';
+    D.muralGear.style.width    = gearSmPx + 'px';
+    D.muralGear.style.height   = gearSmPx + 'px';
+    D.muralGear.style.bottom   = seat + 'px';
+    D.muralGear.style.left     = (-gearSmPx / 2) + 'px';   // left edge, half cropped
 
-    // GEAR ROTATION: continues from the bab handoff angle (S.gearAngle),
-    // circumference-accurate to the mural pan, clockwise. fromTo pins the start
-    // value so there is no rotation snap across the handoff.
+    // ENTRANCE: roll left edge → center across the first ~12% of mural scroll.
+    gsap.fromTo(D.muralGear,
+      { left: -gearSmPx / 2 },
+      { left: (vw / 2 - gearSmPx / 2), ease: 'none',
+        scrollTrigger: {
+          trigger: D.storyStage, start: 'top top',
+          end: () => '+=' + (totalTravel * 0.12), scrub: true,
+        }
+      });
+
+    // GEAR ROTATION: fresh from 0, circumference-accurate to the mural pan, clockwise.
     const circumference = Math.PI * gearSmPx;
     const muralDegrees  = (totalTravel / circumference) * 360;
-    const startAngle    = S.gearAngle || 0;
     gsap.fromTo(D.muralGear,
-      { rotation: startAngle },
-      { rotation: startAngle + muralDegrees, ease: 'none',
+      { rotation: 0 },
+      { rotation: muralDegrees, ease: 'none',
         scrollTrigger: {
           trigger: D.storyStage, start: 'top top', end: 'bottom bottom', scrub: true,
         }
