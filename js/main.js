@@ -298,13 +298,6 @@
     buildLayers();
     initScrollEngine();   // places the fresh gear at the left edge + entrance roll-in
     ScrollTrigger.refresh();
-
-    // TEMP VERIFY (remove before final): bridge geometry at the live viewport
-    var _o = babWindowOrigin(), _vw = window.innerWidth, _vh = window.innerHeight,
-        _sz = gearBasePx() * GEAR_MURAL_SCALE, _pc = _o.x;
-    console.log('[BRIDGE VERIFY] window origin px=(' + _o.x.toFixed(1) + ',' + _o.y.toFixed(1) +
-      ') %=(' + (_o.x / _vw * 100).toFixed(2) + '%vw,' + (_o.y / _vh * 100).toFixed(2) + '%vh) | ' +
-      'gear park left=' + (_pc - _sz / 2).toFixed(1) + 'px center=' + (_pc / _vw * 100).toFixed(2) + '%vw');
   }
 
   // ══════════════════════════════════════════
