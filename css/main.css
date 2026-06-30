@@ -123,10 +123,10 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* City skyline — bottom, biased right, sits on the track */
 .landing__quds {
   position: absolute;
-  bottom: 26%;            /* rises from behind the crenellated wall */
+  bottom: 18%;            /* dropped 10% so its base sinks behind the track (no gap) */
   right: 0;
-  width: 47%;             /* fully right of the gear — no overlap/peek-through */
-  max-width: 900px;
+  width: 55%;             /* left edge tucks under the gear; ~48% visible like the artboard */
+  max-width: 1040px;
   height: auto;
   z-index: 1;
   pointer-events: none;
@@ -260,8 +260,8 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* Drive-through — bottom-right white pill */
 .drive-btn {
   position: absolute;
-  bottom: 13%;
-  right: 14.5%;
+  bottom: 16%;
+  right: 4.5%;
   z-index: 6;
   padding: 11px 32px;
   background: #fff;
