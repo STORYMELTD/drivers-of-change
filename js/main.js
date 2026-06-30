@@ -10,6 +10,7 @@
   const MURAL_H          = 1901;
   const GEAR_FULL_PX     = 490;
   const GEAR_MURAL_SCALE = 0.60;
+  const GEAR_INTRO_SCALE = 1.15;  // initial (pre-scroll) gear is 15% larger; rolling size unchanged
   const TRACK_H_PX       = 72;
   const IL_CANVAS_W      = 1587;
   const IL_CANVAS_H      = 1123;
@@ -221,8 +222,9 @@
     D.gearSystem.style.width  = S.muralW + 'px';
     D.gearSystem.style.height = TRACK_H_PX + 'px';
 
-    const gearPx      = GEAR_FULL_PX * S.muralScale * 2;
-    const gearSmallPx = gearPx * GEAR_MURAL_SCALE;
+    const gearBasePx  = GEAR_FULL_PX * S.muralScale * 2;
+    const gearPx      = gearBasePx * GEAR_INTRO_SCALE;   // initial state, +15% larger
+    const gearSmallPx = gearBasePx * GEAR_MURAL_SCALE;   // rolling state (unchanged → track stays aligned)
     D.muralGear.style.width    = gearPx + 'px';
     D.muralGear.style.height   = gearPx + 'px';
     D.muralGear.style.bottom   = (TRACK_H_PX * 0.2) + 'px';
@@ -290,14 +292,14 @@
       }
     });
 
-    // 2. GEAR SCALE: 100% → 60% over first 10%
+    // 2. GEAR SCALE: intro size → rolling size, eased gently over the first ~16% of travel
     gsap.to(D.muralGear, {
       width: gearSmPx, height: gearSmPx,
       bottom: (TRACK_H_PX * 0.15) + 'px',
-      ease: 'power3.inOut',
+      ease: 'power2.inOut',
       scrollTrigger: {
         trigger: D.storyStage, start: 'top top',
-        end: () => '+=' + (totalTravel * 0.10),
+        end: () => '+=' + (totalTravel * 0.16),
         scrub: true,
       }
     });
