@@ -231,11 +231,7 @@
 
     drawTrack();
 
-    D.muralLayers.querySelectorAll('.mural-layer').forEach(img => {
-      img.style.width    = S.muralW + 'px';
-      img.style.height   = vh + 'px';
-      img.style.maxWidth = 'none';
-    });
+    if (D.muralLayers.children.length > 0) rescaleLayers();
 
     positionChapterBoxes();
     positionHotspots();
