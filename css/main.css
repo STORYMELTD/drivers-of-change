@@ -343,6 +343,18 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   pointer-events: none;
 }
 
+/* Persistent driver overlay — holds the relocated #muralGear during the
+   bab→mural bridge. Fixed above the bab scene so the gate's zoom doesn't
+   scale the gear. overflow:hidden so the left-edge-cropped gear at p=0
+   never spawns a scrollbar. */
+.driver-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  pointer-events: none;
+  overflow: hidden;
+}
+
 .bab__hint {
   position: absolute;
   bottom: 40px;

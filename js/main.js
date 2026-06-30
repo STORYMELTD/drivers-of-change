@@ -41,6 +41,7 @@
     muralImg:      document.getElementById('muralImg'),
     muralLayers:   document.getElementById('muralLayers'),
     gearSystem:    document.getElementById('gearSystem'),
+    driverLayer:   document.getElementById('driverLayer'),
     trackCanvas:   document.getElementById('trackCanvas'),
     muralGear:     document.getElementById('muralGear'),
     chaptersEl:    document.getElementById('chaptersEl'),
@@ -114,8 +115,40 @@
     setTimeout(() => {
       D.landing.style.display = 'none';
       D.babSection.classList.add('visible');
+      seatGearOnBab();
       initBabScroll();
     }, 900);
+  }
+
+  // Base (un-scaled) gear pixel size for the current viewport — single source
+  // of truth shared by the bridge and the mural drive:
+  //   gearBasePx = GEAR_FULL_PX * (vh / MURAL_H) * 2
+  function gearBasePx() {
+    return GEAR_FULL_PX * (window.innerHeight / MURAL_H) * 2;
+  }
+
+  // Stage A — relocate the SINGLE #muralGear node into the fixed driver overlay
+  // and seat it on the bab track at its p=0 pose (intro size, center at the left
+  // edge so it reads 50% cropped). No duplication — same DOM node throughout.
+  function seatGearOnBab() {
+    if (!D.driverLayer || !D.muralGear) return;
+    var size = gearBasePx() * GEAR_INTRO_SCALE;   // 1.15
+    D.driverLayer.appendChild(D.muralGear);
+    D.muralGear.style.position  = 'fixed';
+    D.muralGear.style.width     = size + 'px';
+    D.muralGear.style.height    = size + 'px';
+    D.muralGear.style.left      = (-size / 2) + 'px';   // center on left edge
+    D.muralGear.style.bottom    = TRACK_H_PX + 'px';    // sit on top of bab track
+    D.muralGear.style.transform = 'rotate(0deg)';
+  }
+
+  // Return the gear node to the mural's #gearSystem so the existing mural drive
+  // (which expects it inside #muralWrap) works unchanged. scaleMural() re-applies
+  // its size/left/bottom afterward.
+  function restoreGearToMural() {
+    if (!D.gearSystem || !D.muralGear) return;
+    D.gearSystem.appendChild(D.muralGear);
+    D.muralGear.style.position = '';   // back to CSS (.mural-gear { position:absolute })
   }
 
   // ══════════════════════════════════════════
@@ -181,6 +214,7 @@
       D.storyNav.classList.add('visible');
       document.body.style.overflow = '';
       window.scrollTo({ top: 0 });
+      restoreGearToMural();
       scaleMural();
       buildLayers();
       initScrollEngine();
