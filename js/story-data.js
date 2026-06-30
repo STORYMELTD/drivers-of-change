@@ -69,7 +69,6 @@ const STORY_DATA = {
     {id:'l019',src:'assets/images/DoC-Layers/DoC_019.webp',type:'static',xPct:80.2177,yPct:27.1962,wPct:1.2296,hPct:5.6286,zIndex:165,triggerAt:0},
     {id:'l022',src:'assets/images/DoC-Layers/DoC_022.webp',type:'static',xPct:7.3135,yPct:30.9311,wPct:13.993,hPct:69.0689,zIndex:162,triggerAt:0},
     {id:'l023',src:'assets/images/DoC-Layers/DoC_023.webp',type:'static',xPct:7.1342,yPct:34.4555,wPct:10.1953,hPct:63.0721,zIndex:161,triggerAt:0},
-    {id:'l024',src:'assets/images/DoC-Layers/DoC_024.webp',type:'static',xPct:0.365,yPct:31.3519,wPct:8.0756,hPct:65.7023,zIndex:160,triggerAt:0},
     {id:'l025',src:'assets/images/DoC-Layers/DoC_025.webp',type:'static',xPct:0.0,yPct:19.0426,wPct:37.8162,hPct:81.1152,zIndex:159,triggerAt:0},
     {id:'l026',src:'assets/images/DoC-Layers/DoC_026.webp',type:'static',xPct:20.6596,yPct:74.1189,wPct:0.602,hPct:5.5234,zIndex:158,triggerAt:0},
     {id:'l027',src:'assets/images/DoC-Layers/DoC_027.webp',type:'float',xPct:19.5005,yPct:50.1841,wPct:11.3865,hPct:49.4477,zIndex:157,triggerAt:0},
