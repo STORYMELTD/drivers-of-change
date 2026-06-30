@@ -132,7 +132,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   pointer-events: none;
 }
 
-/* Wall track renders at natural height: crenellated edge ~71%, orange body fills below */
+/* Wall track renders at natural height: crenel low-line ~82.5% (row 91/521), orange body fills below */
 .landing__bottom { display: contents; }
 .landing__track {
   position: absolute;
@@ -260,7 +260,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* Drive-through — bottom-right white pill */
 .drive-btn {
   position: absolute;
-  bottom: 1%;
+  bottom: 6%;
   right: 2%;
   z-index: 6;
   padding: 13px 37px;
