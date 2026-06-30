@@ -123,7 +123,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* City skyline — bottom, biased right, sits on the track */
 .landing__quds {
   position: absolute;
-  bottom: 13%;            /* dropped a further 5% to seat onto the track */
+  bottom: calc(14.25vw - 2vh);   /* base on track's crenel low-line, +2% down to hide the edge */
   right: 0;
   width: 61%;             /* +10% so the left covers well behind the gear */
   max-width: 1040px;
@@ -260,14 +260,14 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* Drive-through — bottom-right white pill */
 .drive-btn {
   position: absolute;
-  bottom: 16%;
-  right: 4.5%;
+  bottom: 1%;
+  right: 2%;
   z-index: 6;
-  padding: 11px 32px;
+  padding: 13px 37px;
   background: #fff;
-  color: #C0571A;        /* dark orange */
+  color: #9C4410;        /* darker orange */
   font-family: 'Ubuntu', sans-serif;
-  font-size: 1.08rem;    /* ~2px bigger */
+  font-size: 1.24rem;    /* enlarged ~15% */
   font-weight: 400;      /* Ubuntu regular */
   font-style: normal;
   letter-spacing: 0.01em;
