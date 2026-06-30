@@ -189,6 +189,17 @@
   // ══════════════════════════════════════════
   // MURAL SIZING
   // ══════════════════════════════════════════
+  function rescaleLayers() {
+    D.muralLayers.querySelectorAll('.mural-layer').forEach(img => {
+      const layer = STORY_DATA.layers.find(l => l.id === img.dataset.layerId);
+      if (!layer) return;
+      img.style.left   = Math.round(layer.xPct / 100 * S.muralW) + 'px';
+      img.style.top    = Math.round(layer.yPct / 100 * S.muralH) + 'px';
+      img.style.width  = Math.round(layer.wPct / 100 * S.muralW) + 'px';
+      img.style.height = Math.round(layer.hPct / 100 * S.muralH) + 'px';
+    });
+  }
+
   function scaleMural() {
     const vh = window.innerHeight;
     const vw = window.innerWidth;
