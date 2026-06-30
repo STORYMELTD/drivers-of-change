@@ -180,8 +180,8 @@
       D.storyNav.classList.add('visible');
       document.body.style.overflow = '';
       window.scrollTo({ top: 0 });
-      buildLayers();
       scaleMural();
+      buildLayers();
       initScrollEngine();
     }, 600);
   }
