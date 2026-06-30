@@ -450,9 +450,9 @@
       img.dataset.layerId     = layer.id;
       img.dataset.trigger     = layer.triggerAt || 0;
       img.style.position      = 'absolute';
-      img.style.left          = (layer.xPct) + '%';
-      img.style.top           = (layer.yPct) + '%';
-      img.style.width         = (layer.wPct) + '%';
+      img.style.left          = Math.round(layer.xPct / 100 * S.muralW) + 'px';
+      img.style.top           = Math.round(layer.yPct / 100 * S.muralH) + 'px';
+      img.style.width         = Math.round(layer.wPct / 100 * S.muralW) + 'px';
       img.style.height        = 'auto';
       img.style.maxWidth      = 'none';
       img.style.zIndex        = layer.zIndex || 1;
