@@ -432,6 +432,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 }
 
 .mural-gear {
+  z-index: 510;
   position: absolute;
   /* bottom and left set dynamically in JS */
   object-fit: contain;
