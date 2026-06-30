@@ -12,10 +12,10 @@
   const GEAR_MURAL_SCALE = 0.60;
   const GEAR_INTRO_SCALE = 1.15;  // initial (pre-scroll) gear is 15% larger; rolling size unchanged
   const TRACK_H_PX       = 72;
-  const IL_CANVAS_W      = 1587;
-  const IL_CANVAS_H      = 1123;
-  const IL_GEAR_X        = 1040;
-  const IL_GEAR_Y        = 550;
+  const IL_CANVAS_W      = 1496;  // UX artboard width  (matches loader reference)
+  const IL_CANVAS_H      = 807;   // UX artboard height (matches loader reference)
+  const IL_GEAR_X        = 1050;
+  const IL_GEAR_Y        = 544;
 
   const S = {
     phase: 'loading',

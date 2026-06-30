@@ -92,26 +92,24 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 }
 
 /* ─────────────────────────────────────────
-   SCREEN 2 — LANDING
+   SCREEN 2 — LANDING   (UX layout: title left · gear center-left ·
+   subtitle right w/ leader line · skyline bottom-right ·
+   logos bottom-left · drive-through pill bottom-right)
 ───────────────────────────────────────── */
 #landing {
   position: fixed;
   inset: 0;
   z-index: 1000;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
   transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
 }
 #landing.out {
-  opacity: 1;
+  opacity: 0;                 /* fixed: was 1 — landing now fades out cleanly */
   transform: scale(1.04);
   pointer-events: none;
 }
 
-/* Background image */
+/* Orange sunburst background */
 .landing__bg {
   position: absolute;
   inset: 0;
@@ -122,131 +120,27 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   z-index: 0;
 }
 
-/* Quds city mural — bottom portion, bleeds up */
+/* City skyline — bottom, biased right, sits on the track */
 .landing__quds {
   position: absolute;
   bottom: var(--track-h);
-  left: 0;
-  width: 100%;
+  right: 0;
+  width: 80%;
+  max-width: 1480px;
+  height: auto;
   z-index: 1;
   pointer-events: none;
 }
 
-/* Gear — 100% size, centered, slow rotation, drop shadow */
-.landing__gear-wrap {
-  position: absolute;
-  /* Horizontally centered, vertically in lower-mid area */
-  left: 50%;
-  top:  52%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-  width:  var(--gear-full);
-  height: var(--gear-full);
-  pointer-events: none;
-}
-
-.landing__gear {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform-origin: 50% 50%;
-  animation: spin-cw 18s linear infinite;
-  filter: drop-shadow(0 8px 32px rgba(0,0,0,0.55))
-          drop-shadow(0 2px 8px rgba(0,0,0,0.4));
-}
-
-/* White rule + subtitle — sits above gear area */
-.landing__subtitle-wrap {
-  position: absolute;
-  top: 22%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 4;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  white-space: nowrap;
-}
-
-.landing__rule {
-  width: 60px;
-  height: 1.5px;
-  background: #fff;
-  flex-shrink: 0;
-}
-
-.landing__subtitle {
-  font-family: 'Ubuntu', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.72);
-  letter-spacing: 0.01em;
-}
-
-/* Main title block */
-.landing__title-wrap {
-  position: absolute;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 4;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.landing__title {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-}
-
-.landing__title-line1 {
-  font-family: 'Ubuntu', sans-serif;
-  font-size: 45pt;
-  font-weight: 500;
-  font-style: italic;
-  color: #fff;
-  display: block;
-  line-height: 1.1;
-}
-
-.landing__title-line2 {
-  font-family: 'Ubuntu', sans-serif;
-  font-size: 100pt;
-  font-weight: 700;
-  font-style: normal;
-  color: #fff;
-  display: block;
-  line-height: 0.9;
-  letter-spacing: -0.02em;
-}
-
-/* Logos */
-.landing__logos {
-  position: absolute;
-  bottom: calc(var(--track-h) + 20px);
-  left: 50%;
-  transform: translateX(-50%);
-  height: 44px;
-  width: auto;
-  z-index: 4;
-  opacity: 0.9;
-}
-
-/* Bottom: tented track + drive button */
+/* Track strip + drive button live at the bottom */
 .landing__bottom {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   height: var(--track-h);
-  z-index: 5;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  z-index: 2;
 }
-
 .landing__track {
   position: absolute;
   bottom: 0;
@@ -257,29 +151,155 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   object-position: top center;
 }
 
-.drive-btn {
+/* Gear — center-left, slow spin, soft shadow */
+.landing__gear-wrap {
   position: absolute;
-  bottom: calc(var(--track-h) + 32px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 6;
-  padding: 15px 52px;
-  background: var(--gold);
-  color: #1A1200;
+  left: 38%;
+  top: 58%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  width: clamp(280px, 27vw, 470px);
+  height: clamp(280px, 27vw, 470px);
+  pointer-events: none;
+  animation: landing-gear-in 1s var(--ease-out) both;
+}
+.landing__gear {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 50% 50%;
+  animation: spin-cw 24s linear infinite;
+  filter: drop-shadow(0 14px 30px rgba(0, 0, 0, 0.42))
+          drop-shadow(0 3px 8px rgba(0, 0, 0, 0.32));
+}
+
+/* Title — left, vertically mid, left-aligned */
+.landing__title-wrap {
+  position: absolute;
+  left: 5.5%;
+  top: 29%;
+  z-index: 5;
+  text-align: left;
+  white-space: nowrap;
+  animation: landing-rise 0.9s var(--ease-out) both;
+}
+.landing__title {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+.landing__title-line1 {
   font-family: 'Ubuntu', sans-serif;
-  font-size: 1rem;
+  font-size: clamp(20px, 2.4vw, 38px);
+  font-weight: 500;
+  font-style: italic;
+  color: #fff;
+  display: block;
+  line-height: 1.05;
+  padding-left: 8px;
+}
+.landing__title-line2 {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: clamp(48px, 6vw, 100px);
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  border-radius: 3px;
-  box-shadow: 0 4px 24px rgba(196,163,90,0.45);
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  color: #fff;
+  display: block;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+/* Subtitle — right side, text sitting over a leader line that ends in a dot */
+.landing__subtitle-wrap {
+  position: absolute;
+  left: 49%;
+  top: 31%;
+  width: 30%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column-reverse;   /* text on top, rule below */
+  align-items: flex-end;
+  gap: 9px;
+  animation: landing-rise 0.9s 0.12s var(--ease-out) both;
+}
+.landing__subtitle {
+  font-family: 'Ubuntu', sans-serif;
+  font-size: clamp(13px, 1.2vw, 19px);
+  font-weight: 700;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
+.landing__rule {
+  position: relative;
+  width: 100%;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.78);
+}
+.landing__rule::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateY(-50%);
+}
+
+/* Logos — bottom-left */
+.landing__logos {
+  position: absolute;
+  bottom: calc(var(--track-h) + 16px);
+  left: 3.5%;
+  height: 40px;
+  width: auto;
+  z-index: 6;
+  opacity: 0.95;
+  animation: landing-fade 0.9s 0.28s var(--ease-out) both;
+}
+
+/* Drive-through — bottom-right white pill */
+.drive-btn {
+  position: absolute;
+  bottom: calc(var(--track-h) + 26px);
+  right: 4.5%;
+  z-index: 6;
+  padding: 11px 32px;
+  background: #fff;
+  color: var(--gold);
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+  animation: landing-fade 0.9s 0.38s var(--ease-out) both;
+}
 .drive-btn:hover {
-  background: #d4b86a;
-  transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 8px 36px rgba(196,163,90,0.55);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.26);
+}
+
+/* Landing entrance animations */
+@keyframes landing-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes landing-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes landing-gear-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 /* ─────────────────────────────────────────
