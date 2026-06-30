@@ -320,7 +320,7 @@
       }
     });
 
-    // 5. LAYERS — reveal container, then parallax each layer
+    // 5. LAYERS — reveal container, then animate (float / sway / fade-in)
     D.muralLayers.style.visibility = 'visible';
     gsap.to(D.muralLayers, { opacity: 1, duration: 0.5, delay: 0.2 });
 
@@ -328,14 +328,12 @@
       const el = D.muralLayers.querySelector('[data-layer-id="' + layer.id + '"]');
       if (!el) return;
 
-      const extraX = (travelX * layer.depth) - travelX;
-      gsap.set(el, { x: 0 });
-      gsap.to(el, {
-        x: extraX, ease: 'none',
-        scrollTrigger: {
-          trigger: D.storyStage, start: 'top top', end: 'bottom bottom', scrub: true,
-        }
-      });
+      // No horizontal parallax. All layers are depth 1.0 (locked decision:
+      // full-canvas-origin layers must move exactly with the mural or the
+      // composition breaks). Layers are children of #muralWrap, so they ride
+      // the base pan automatically — no per-layer x-tween needed.
+      // (The old tween read layer.depth, which is undefined, producing x:NaN
+      //  and corrupting the float/sway transforms on the same elements.)
 
       if (layer.type === 'sway') {
         gsap.to(el, { rotation: 1.5, repeat: -1, yoyo: true, duration: 3 + Math.random() * 2, ease: 'sine.inOut', delay: Math.random() * 2, transformOrigin: '50% 100%' });
