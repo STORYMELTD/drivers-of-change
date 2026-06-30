@@ -11,6 +11,7 @@
   const GEAR_FULL_PX     = 490;
   const GEAR_MURAL_SCALE = 0.60;
   const GEAR_INTRO_SCALE = 1.15;  // initial (pre-scroll) gear is 15% larger; rolling size unchanged
+  const GEAR_MURAL_ENTER_SCALE = 1.15;  // phase-2: gear enters this large, shrinks to rolling (bump ~1.5 for more drama)
   const TRACK_H_PX       = 72;
   // ── Bab→mural bridge tunables ──
   const BAB_ROLL_END       = 0.40;  // phase-1 p where the gear reaches the window & stops traveling
@@ -269,26 +270,30 @@
   function panUpdate(p2) {
     if (!D.muralGear) return;
     var vw      = window.innerWidth;
-    var size    = gearBasePx() * GEAR_MURAL_SCALE;     // 0.60 rolling size
     var seat    = Math.round(TRACK_H_PX * 0.15);
     var settleX = vw * GEAR_SETTLE_X_FRAC;             // settle center (single knob)
 
     // pan the city
     gsap.set(D.muralWrap, { x: -p2 * S.panPx });
 
-    // gear entrance: center travels left-edge (x=0) → settleX over the first
-    // GEAR_ENTER_FRAC, then holds.
-    var enter = Math.min(p2 / GEAR_ENTER_FRAC, 1);
-    var cx    = enter * settleX;
+    // gear entrance: enters LARGE and shrinks to rolling size, while its center
+    // travels left-edge (x=0) → settleX, over the first GEAR_ENTER_FRAC; then holds.
+    var enter     = Math.min(p2 / GEAR_ENTER_FRAC, 1);
+    var base      = gearBasePx();
+    var sizeBig   = base * GEAR_MURAL_ENTER_SCALE;
+    var sizeSmall = base * GEAR_MURAL_SCALE;           // 0.60 rolling size
+    var size      = sizeBig + (sizeSmall - sizeBig) * enter;  // large → 0.60 over the entrance
+    var cx        = enter * settleX;
     D.muralGear.style.opacity  = '1';
     D.muralGear.style.position = 'fixed';
     D.muralGear.style.width    = size + 'px';
     D.muralGear.style.height   = size + 'px';
-    D.muralGear.style.bottom   = seat + 'px';
+    D.muralGear.style.bottom   = seat + 'px';          // stays bottom-seated; shrinks in place
     D.muralGear.style.left     = (cx - size / 2) + 'px';
 
-    // spin: circumference-accurate to the pan, fresh from 0
-    var muralDegrees = (S.panPx / (Math.PI * size)) * 360;
+    // spin: circumference-accurate to the pan, fresh from 0. Reference the ROLLING
+    // size (constant) so the changing entrance size doesn't make rotation jump.
+    var muralDegrees = (S.panPx / (Math.PI * sizeSmall)) * 360;
     gsap.set(D.muralGear, { rotation: p2 * muralDegrees });
 
     S.scrollProgress = p2;
@@ -465,17 +470,23 @@
     const idx = getChapterAt(progress);
     if (idx !== S.currentChapter) setChapter(idx);
     updateHotspots(progress);
-
+    lazyLoadLayers(progress);
   }
 
+  // JS-driven lazy load: assign src once the pan progress comes within loadAhead
+  // of a layer's trigger, preloading the next chapter ahead of its fade-in.
+  // Guard on data-loaded (not img.src): img.src resolves to an absolute URL and
+  // never compares equal to the relative data-src, which would re-assign every
+  // scroll frame. Called from onScrollUpdate; one pass loads everything up to the
+  // current progress, so nav jumps to a later chapter still backfill correctly.
   function lazyLoadLayers(progress) {
     var loadAhead = 0.15;
     D.muralLayers.querySelectorAll('.mural-layer').forEach(function(img) {
+      if (img.dataset.loaded) return;
       var trigger = parseFloat(img.dataset.trigger || 0);
-      var dataSrc = img.dataset.src;
-      if (!dataSrc) return;
-      if (progress >= (trigger - loadAhead) && img.src !== dataSrc) {
-        img.src = dataSrc;
+      if (progress >= (trigger - loadAhead)) {
+        img.src = img.dataset.src;
+        img.dataset.loaded = '1';
       }
     });
   }
@@ -525,8 +536,14 @@
     STORY_DATA.layers.forEach(layer => {
       const img = document.createElement('img');
       img.className           = 'mural-layer';
-      img.src                 = layer.src;
-      img.loading             = 'lazy';
+      // JS-driven lazy load (see lazyLoadLayers). Native loading="lazy" NEVER
+      // fires for layers brought on-screen by the mural's horizontal TRANSFORM
+      // (the page scroll is vertical), so off-canvas layers like DoC_145 stayed
+      // blank forever. We own loading: stash the URL in data-src and assign src
+      // as the pan nears each layer's trigger. Always-visible base layers
+      // (triggerAt 0) load eagerly right here.
+      img.dataset.src         = layer.src;
+      if (!layer.triggerAt) { img.src = layer.src; img.dataset.loaded = '1'; }
       img.decoding            = 'async';
       img.alt                 = '';
       img.setAttribute('aria-hidden', 'true');
