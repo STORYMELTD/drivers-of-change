@@ -329,13 +329,16 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   will-change: transform;
 }
 
-/* Dented track across the bottom — bottom-anchored like landing's .landing__track */
+/* Dented track across the bottom — tiled repeat-x like the mural canvas track
+   (long asset ratio ~18.5; tile via background-size auto 100% so teeth aren't stretched) */
 .bab__track {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: auto;
+  height: 72px;   /* matches mural track (TRACK_H_PX) */
+  background: url('../assets/images/gear track long-01.png') repeat-x left bottom;
+  background-size: auto 100%;
   z-index: 2;
   pointer-events: none;
 }
