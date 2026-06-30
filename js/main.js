@@ -464,7 +464,7 @@
       img.style.left          = Math.round(layer.xPct / 100 * S.muralW) + 'px';
       img.style.top           = Math.round(layer.yPct / 100 * S.muralH) + 'px';
       img.style.width         = Math.round(layer.wPct / 100 * S.muralW) + 'px';
-      img.style.height        = Math.round(layer.hPct / 100 * S.muralH) + 'px';
+      img.style.height        = 'auto';
       img.style.maxWidth      = 'none';
       img.style.zIndex        = layer.zIndex || 1;
       img.style.pointerEvents = 'none';
