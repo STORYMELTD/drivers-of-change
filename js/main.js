@@ -441,23 +441,23 @@
   function buildLayers() {
     STORY_DATA.layers.forEach(layer => {
       const img = document.createElement('img');
-      img.className          = 'mural-layer';
-      img.src = layer.src;
-      img.loading = 'lazy';
-      img.decoding = 'async';
-      img.alt                = '';
+      img.className           = 'mural-layer';
+      img.src                 = layer.src;
+      img.loading             = 'lazy';
+      img.decoding            = 'async';
+      img.alt                 = '';
       img.setAttribute('aria-hidden', 'true');
-      img.dataset.layerId    = layer.id;
-      img.dataset.trigger    = layer.triggerAt || 0;
-      img.style.position     = 'absolute';
-      img.style.top          = '0';
-      img.style.left         = '0';
-      img.style.width        = S.muralW + 'px';
-      img.style.height       = S.muralH + 'px';
-      img.style.maxWidth     = 'none';
-      img.style.zIndex       = layer.zIndex || 1;
+      img.dataset.layerId     = layer.id;
+      img.dataset.trigger     = layer.triggerAt || 0;
+      img.style.position      = 'absolute';
+      img.style.left          = (layer.xPct) + '%';
+      img.style.top           = (layer.yPct) + '%';
+      img.style.width         = (layer.wPct) + '%';
+      img.style.height        = 'auto';
+      img.style.maxWidth      = 'none';
+      img.style.zIndex        = layer.zIndex || 1;
       img.style.pointerEvents = 'none';
-      img.style.opacity      = '0';
+      img.style.opacity       = layer.triggerAt ? '0' : '1';
       D.muralLayers.appendChild(img);
     });
   }
