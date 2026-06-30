@@ -395,7 +395,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   height: 100vh;
   overflow: hidden;
   background: var(--deep);
-  z-index: 10;   /* base: below the gate overlay (20); slide mode raises this to 30 via JS */
+  z-index: 10;   /* below the gate overlay (20); gate cuts away to reveal the city */
 }
 
 .mural-wrap {

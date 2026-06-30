@@ -16,10 +16,9 @@
   const BAB_ROLL_END       = 0.40;  // phase-1 p where the gear reaches the window & stops traveling
   const BAB_IDLE_SPIN      = 18;    // deg of extremely-slow idle spin over roll-end → 1
   const BAB_HIRES_AT       = 0.38;  // p to swap #babImg to hi-res, just before the zoom
-  const BAB_FADE_START     = 0.40;  // phase-1 p where the gate begins crossfading out (→ 1.0)
+  const BAB_CUT_AT         = 0.97;  // phase-1 p where the fully-zoomed gate cuts straight to the mural
   const BAB_WIN_OX         = 0.506; // window-origin x as fraction of the gate image (measured)
   const BAB_WIN_OY         = 0.35;  // window-origin y as fraction of the gate image (measured)
-  const BAB_SLIDE_START    = 0.80;  // slide mode: p where the city starts sliding in from the right
   const GEAR_ENTER_FRAC    = 0.12;  // phase-2: fraction of the pan over which the gear rolls in from the edge
   const GEAR_SETTLE_X_FRAC = 0.50;  // phase-2: gear settle center as a fraction of vw (single knob)
   const IL_CANVAS_W      = 1496;  // UX artboard width  (matches loader reference)
@@ -34,7 +33,6 @@
     scrollProgress: 0, currentChapter: -1,
     panelOpen: false, audioEnabled: false,
     trackImgEl: null,
-    reveal: 'slide',            // 'slide' (default) | 'crossfade' — from ?reveal=crossfade
     babZoomPx: 0, panPx: 0,     // phase-1 (gate) and phase-2 (pan) scroll distances
     st1: null, st2: null,       // the two phase ScrollTriggers (for resize re-pose)
   };
@@ -131,19 +129,9 @@
       document.body.style.overflow = '';   // enable native scroll
       window.scrollTo(0, 0);
       var hi = new Image(); hi.src = 'assets/images/bab alamoud-hi.webp';  // preload zoom tier
-      // slide is the production reveal; crossfade kept only behind ?reveal=crossfade
-      S.reveal = (new URLSearchParams(location.search).get('reveal') === 'crossfade') ? 'crossfade' : 'slide';
-      applyRevealZ();
       seatGearOnBab();
       buildJourney();
     }, 900);
-  }
-
-  // Reveal mode z-order. The gate (#babSection) is a fixed overlay; the city
-  // (#muralViewport) sits behind it for crossfade, or above it for slide so it
-  // can slide in over the gate. #driverLayer (gear) always stays on top.
-  function applyRevealZ() {
-    D.muralViewport.style.zIndex = (S.reveal === 'slide') ? '30' : '';  // '' → CSS default (10)
   }
 
   // Build the whole journey up front: the city sits behind the gate overlay from
@@ -183,9 +171,9 @@
 
   // ══════════════════════════════════════════
   // SCREEN 3 — BAB AL-AMOUD  (PHASE 1: gate overlay zoom)
-  // The gate is a fixed overlay; the city sits behind it from scroll 0. p (0..1)
-  // over the first babZoomPx of scroll drives the gear-on-gate choreography, the
-  // deep window zoom, and the reveal (mode-specific city positioning + gate fade).
+  // The gate is a fixed overlay; the city sits behind it (left edge) from scroll 0.
+  // p (0..1) over the first babZoomPx of scroll drives the gear-on-gate choreography
+  // and the deep window zoom, then the gate cuts away to the mural (direct move).
   // ══════════════════════════════════════════
   function driveBab(p) {
     if (!D.muralGear) return;
@@ -235,21 +223,11 @@
       D.babImg.style.transform = 'scale(1)';
     }
 
-    // REVEAL — position the city (#muralWrap) behind/around the gate per mode.
-    if (S.reveal === 'slide') {
-      // city held off-screen right, then slides in to the left edge (x=0)
-      var sx = p < BAB_SLIDE_START ? vw
-        : vw * (1 - (p - BAB_SLIDE_START) / (1 - BAB_SLIDE_START));
-      gsap.set(D.muralWrap, { x: sx });
-    } else {
-      gsap.set(D.muralWrap, { x: 0 });   // crossfade: city pinned at its left edge
-    }
-
-    // gate crossfade out over 0.40 → 1.0 (reveals the city in crossfade; in slide
-    // the city slides over the fading gate)
-    D.babSection.style.opacity = p <= BAB_FADE_START
-      ? 1
-      : 1 - (p - BAB_FADE_START) / (1 - BAB_FADE_START);
+    // DIRECT MOVE — the city sits at its left edge (x=0) behind the gate the whole
+    // time. The gate stays fully opaque through the zoom, then cuts away at the
+    // end, dropping you straight into the mural at its left edge. No slide, no fade.
+    gsap.set(D.muralWrap, { x: 0 });
+    D.babSection.style.opacity = p < BAB_CUT_AT ? 1 : 0;
   }
 
   // Circumference-accurate rolling rotation (deg) as the gear's diameter shrinks
