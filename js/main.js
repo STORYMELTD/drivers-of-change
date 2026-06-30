@@ -34,7 +34,7 @@
     scrollProgress: 0, currentChapter: -1,
     panelOpen: false, audioEnabled: false,
     trackImgEl: null,
-    reveal: 'crossfade',        // 'crossfade' (default) | 'slide' — from ?reveal=
+    reveal: 'slide',            // 'slide' (default) | 'crossfade' — from ?reveal=crossfade
     babZoomPx: 0, panPx: 0,     // phase-1 (gate) and phase-2 (pan) scroll distances
     st1: null, st2: null,       // the two phase ScrollTriggers (for resize re-pose)
   };
@@ -131,7 +131,8 @@
       document.body.style.overflow = '';   // enable native scroll
       window.scrollTo(0, 0);
       var hi = new Image(); hi.src = 'assets/images/bab alamoud-hi.webp';  // preload zoom tier
-      S.reveal = (new URLSearchParams(location.search).get('reveal') === 'slide') ? 'slide' : 'crossfade';
+      // slide is the production reveal; crossfade kept only behind ?reveal=crossfade
+      S.reveal = (new URLSearchParams(location.search).get('reveal') === 'crossfade') ? 'crossfade' : 'slide';
       applyRevealZ();
       seatGearOnBab();
       buildJourney();
@@ -417,17 +418,7 @@
       end:     'bottom bottom',
       scrub:   true,
       onUpdate: self => panUpdate(self.progress),
-      // TEMP VERIFY (remove before merge): phase-1→2 boundary state
-      onEnter: () => console.log('[BRIDGE] phase1→2 @scrollY=' + Math.round(window.scrollY) +
-        ' muralWrap.x=' + (gsap.getProperty(D.muralWrap, 'x')) +
-        ' gateOpacity=' + D.babSection.style.opacity),
     });
-
-    // TEMP VERIFY (remove before merge): journey scroll geometry
-    console.log('[BRIDGE] babZoomPx=' + Math.round(S.babZoomPx) +
-      ' panPx=' + Math.round(S.panPx) +
-      ' storyStageH=' + D.storyStage.style.height +
-      ' reveal=' + S.reveal);
 
     // LAYERS — reveal container, then animate (float / sway / fade-in).
     D.muralLayers.style.visibility = 'visible';
@@ -476,13 +467,7 @@
       ScrollTrigger.create({
         trigger: D.storyStage,
         start: () => 'top+=' + (S.babZoomPx + ch.scrollStart * S.panPx + buf) + 'px top',
-        onEnter:     () => {
-          gsap.to(box, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' });
-          // TEMP VERIFY (remove before merge): confirm chapter fires AFTER the zoom
-          if (i === 1) console.log('[BRIDGE] chapter 1 enter @scrollY=' + Math.round(window.scrollY) +
-            ' (babZoomPx=' + Math.round(S.babZoomPx) + ' → ' +
-            (window.scrollY > S.babZoomPx ? 'AFTER zoom OK' : 'DURING zoom BUG') + ')');
-        },
+        onEnter:     () => gsap.to(box, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }),
         onLeaveBack: () => gsap.to(box, { opacity: 0, y: 24, duration: 0.4 }),
       });
       ScrollTrigger.create({
