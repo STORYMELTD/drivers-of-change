@@ -397,7 +397,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   position: absolute;
   top: 0;
   left: 0;
-  height: 100vh;
+  height: auto;
   max-width: none;
   pointer-events: none;
   opacity: 1; /* each layer fades in after GSAP positions it */
