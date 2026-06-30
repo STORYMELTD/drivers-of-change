@@ -6,8 +6,8 @@
 (function () {
   'use strict';
 
-  const MURAL_W          = 15000;
-  const MURAL_H          = 1900;
+  const MURAL_W          = 15615;
+  const MURAL_H          = 1901;
   const GEAR_FULL_PX     = 490;
   const GEAR_MURAL_SCALE = 0.60;
   const TRACK_H_PX       = 72;
