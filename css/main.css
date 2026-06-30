@@ -123,9 +123,9 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* City skyline — bottom, biased right, sits on the track */
 .landing__quds {
   position: absolute;
-  bottom: 18%;            /* dropped 10% so its base sinks behind the track (no gap) */
+  bottom: 13%;            /* dropped a further 5% to seat onto the track */
   right: 0;
-  width: 55%;             /* left edge tucks under the gear; ~48% visible like the artboard */
+  width: 61%;             /* +10% so the left covers well behind the gear */
   max-width: 1040px;
   height: auto;
   z-index: 1;
@@ -265,11 +265,11 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   z-index: 6;
   padding: 11px 32px;
   background: #fff;
-  color: var(--gold);
+  color: #C0571A;        /* dark orange */
   font-family: 'Ubuntu', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  font-style: italic;
+  font-size: 1.08rem;    /* ~2px bigger */
+  font-weight: 400;      /* Ubuntu regular */
+  font-style: normal;
   letter-spacing: 0.01em;
   text-transform: lowercase;
   border: none;
