@@ -199,7 +199,6 @@ const STORY_DATA = {
     {id:'l178',src:'assets/images/DoC-Layers/DoC_178.webp',type:'static',xPct:0.0704,yPct:0.263,wPct:6.5066,hPct:29.9316,zIndex:6,triggerAt:0},
     {id:'l179',src:'assets/images/DoC-Layers/DoC_179.webp',type:'static',xPct:-11.5274,yPct:4.7344,wPct:19.302,hPct:58.6007,zIndex:5,triggerAt:0},
     {id:'l180',src:'assets/images/DoC-Layers/DoC_180.webp',type:'static',xPct:47.3007,yPct:16.4124,wPct:9.2091,hPct:27.5118,zIndex:4,triggerAt:0},
-    {id:'l182',src:'assets/images/DoC-Layers/DoC_182.webp',type:'static',xPct:73.5959,yPct:14.3083,wPct:16.798,hPct:43.1352,zIndex:2,triggerAt:0},
   ],
 
   audio: {
