@@ -183,6 +183,7 @@
       scaleMural();
       buildLayers();
       initScrollEngine();
+      ScrollTrigger.refresh();
     }, 600);
   }
 
