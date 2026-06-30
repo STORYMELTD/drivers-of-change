@@ -115,6 +115,8 @@
     setTimeout(() => {
       D.landing.style.display = 'none';
       D.babSection.classList.add('visible');
+      document.body.style.overflow = '';   // enable native scroll for the pinned bab
+      window.scrollTo(0, 0);
       seatGearOnBab();
       initBabScroll();
     }, 900);
@@ -153,43 +155,34 @@
 
   // ══════════════════════════════════════════
   // SCREEN 3 — BAB AL-AMOUD
-  // Scroll → zoom into top-center gate window
+  // Pinned ~300vh; scrub scroll progress p drives the gate zoom, then hands off
+  // to the mural in ONE continuous native scroll — no wheel accumulator, no cut.
+  // (Stage B. The full gear scale/roll/rotate choreography lands in Stage C as
+  //  an expansion of driveBab().)
   // ══════════════════════════════════════════
   function initBabScroll() {
-    let prog = 0;
+    if (typeof ScrollTrigger === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
-    function onWheel(e) {
-      if (S.phase !== 'bab' || S.babDone) return;
-      e.preventDefault();
-      prog = Math.max(0, Math.min(1, prog + (e.deltaY > 0 ? 0.008 : -0.008)));
-      applyBabZoom(prog);
-      if (prog >= 1) enterMural();
-    }
+    ScrollTrigger.create({
+      trigger:     D.babSection,
+      start:       'top top',
+      end:         function () { return '+=' + (window.innerHeight * 3); },  // ~300vh
+      pin:         true,
+      pinSpacing:  true,
+      scrub:       true,
+      onUpdate:    function (self) { driveBab(self.progress); },
+      onLeave:     function () { handoffToMural(); },
+    });
 
-    let touchY0 = 0;
-    function onTouchStart(e) { touchY0 = e.touches[0].clientY; }
-    function onTouchMove(e) {
-      if (S.phase !== 'bab' || S.babDone) return;
-      e.preventDefault();
-      const dy = touchY0 - e.touches[0].clientY;
-      touchY0  = e.touches[0].clientY;
-      prog = Math.max(0, Math.min(1, prog + dy * 0.004));
-      applyBabZoom(prog);
-      if (prog >= 1) enterMural();
-    }
+    ScrollTrigger.refresh();
+  }
 
-    window.addEventListener('wheel',      onWheel,      { passive: false });
-    window.addEventListener('touchstart', onTouchStart, { passive: true  });
-    window.addEventListener('touchmove',  onTouchMove,  { passive: false });
-
-    D.babSection.addEventListener('click', () => {
-      if (S.babDone) return;
-      gsap.to({ p: prog }, {
-        p: 1, duration: 1.6, ease: 'power2.inOut',
-        onUpdate: function() { applyBabZoom(this.targets()[0].p); },
-        onComplete: enterMural,
-      });
-    }, { once: true });
+  // p (0..1) drives the bridge. Stage B: just the existing gate zoom.
+  // Stage C expands this into gear scale → roll → rotate + computed-origin
+  // scene zoom + hi-res swap.
+  function driveBab(p) {
+    applyBabZoom(p);
   }
 
   function applyBabZoom(progress) {
@@ -199,27 +192,22 @@
     D.babImg.style.transform = 'scale(' + (1 + eased * 9) + ')';
   }
 
-  function enterMural() {
+  // Hand off to the mural when the bab pin completes (p=1). One-way (S.babDone).
+  // No scrollTo / overflow toggling — native scroll is already live and simply
+  // continues into #storyStage, whose triggers begin at progress 0. The mural
+  // drive and chapter triggers are unchanged.
+  // NOTE (Stage B): the gear still snaps from its bab seat to the mural's start
+  // pose here via restoreGearToMural(); Stage C makes that handoff seamless.
+  function handoffToMural() {
     if (S.babDone) return;
     S.babDone = true;
     S.phase   = 'mural';
-    gsap.to(D.babSection, {
-      opacity: 0, duration: 0.8,
-      onComplete: () => {
-        D.babSection.classList.remove('visible');
-        D.babSection.classList.add('out');
-      }
-    });
-    setTimeout(() => {
-      D.storyNav.classList.add('visible');
-      document.body.style.overflow = '';
-      window.scrollTo({ top: 0 });
-      restoreGearToMural();
-      scaleMural();
-      buildLayers();
-      initScrollEngine();
-      ScrollTrigger.refresh();
-    }, 600);
+    D.storyNav.classList.add('visible');
+    restoreGearToMural();
+    scaleMural();
+    buildLayers();
+    initScrollEngine();
+    ScrollTrigger.refresh();
   }
 
   // ══════════════════════════════════════════
