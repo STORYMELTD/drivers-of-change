@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/main.css?v=28"/>
+  <link rel="stylesheet" href="css/main.css?v=29"/>
 </head>
 <body>
 
@@ -133,6 +133,25 @@
   </main>
 
   <!-- ═══════════════════════════════
+       CLOSURE FRAME — statement + logos overlay.
+       Fixed layer above the mural; JS fades opacity in over p2 0.92→1.0.
+       The gear (z 95) eases to a centered stop and crowns the center; the
+       statement sits left-of-center and the logos block anchors right.
+  ═══════════════════════════════ -->
+  <div id="creditsOverlay" class="credits-overlay" aria-hidden="true">
+    <div class="credits-statement">
+      <span class="credits-pre">Drivers of</span>
+      <span class="credits-title">Change</span>
+      <span class="credits-body">leaves stronger communities, clearer evidence, and a renewed commitment to environmental justice across East Jerusalem.</span>
+    </div>
+    <div class="credits-logos-wrap">
+      <div class="credits-rule"></div>
+      <img class="credits-logos" src="assets/images/Dof_logos_block.png" alt="Project partners" draggable="false"
+           onerror="this.closest('.credits-logos-wrap').style.display='none'"/>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
        HOTSPOT SIDE PANEL
   ═══════════════════════════════ -->
   <aside id="hotspotPanel" class="hotspot-panel" aria-hidden="true">
@@ -163,7 +182,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
-  <script src="js/story-data.js?v=28"></script>
-  <script src="js/main.js?v=28"></script>
+  <script src="js/story-data.js?v=29"></script>
+  <script src="js/main.js?v=29"></script>
 </body>
 </html>

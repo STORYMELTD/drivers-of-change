@@ -428,6 +428,77 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 }
 
 /* ─────────────────────────────────────────
+   CLOSURE FRAME — statement + logos overlay
+   Fixed, full-screen; JS fades opacity 0→1 over the last of the pan.
+   z 90: above the mural/closure, below the centered stopped gear (95).
+───────────────────────────────────────── */
+.credits-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  opacity: 0;                 /* driven by panUpdate (p2 0.92→1.0) */
+  pointer-events: none;
+  color: #fff;
+}
+
+/* Statement — left-of-center, vertically centered, clears the centered gear */
+.credits-statement {
+  position: absolute;
+  top: 50%;
+  left: 7vw;
+  transform: translateY(-50%);
+  max-width: 33vw;            /* right edge ~40vw — clears the ~17vw-wide centered gear */
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  text-shadow: 0 0.15vw 1.4vw rgba(0, 0, 0, 0.35);
+}
+.credits-pre {
+  font-style: italic;
+  font-weight: 400;
+  font-size: 2vw;
+  line-height: 1;
+}
+.credits-title {
+  font-weight: 800;
+  font-size: 5.6vw;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+}
+.credits-body {
+  font-style: italic;
+  font-size: 1.35vw;
+  line-height: 1.5;
+  margin-top: 1.2vw;
+  max-width: 30vw;
+}
+
+/* Vertical rule + logos block — both right-anchored, vertically centered */
+.credits-logos-wrap {
+  position: absolute;
+  top: 50%;
+  right: 4vw;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2vw;
+}
+.credits-rule {
+  flex: none;
+  width: 2px;
+  height: 40vh;
+  background: #fff;
+}
+/* Single image — uniform scale only, never stretched (both max-* + auto keep aspect) */
+.credits-logos {
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: 62vh;
+  max-width: 22vw;
+}
+
+/* ─────────────────────────────────────────
    LAYERS
 ───────────────────────────────────────── */
 .mural-layers {

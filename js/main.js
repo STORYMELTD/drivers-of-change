@@ -24,6 +24,7 @@
   const BAB_WIN_OY         = 0.35;  // window-origin y as fraction of the gate image (measured)
   const GEAR_ENTER_FRAC    = 0.12;  // phase-2: fraction of the pan over which the gear rolls in from the edge
   const GEAR_SETTLE_X_FRAC = 0.50;  // phase-2: gear settle center as a fraction of vw (single knob)
+  const CREDITS_FADE_START = 0.92;  // phase-2 p2 where the closure credits overlay begins fading in (→1.0)
   const IL_CANVAS_W      = 1496;  // UX artboard width  (matches loader reference)
   const IL_CANVAS_H      = 807;   // UX artboard height (matches loader reference)
   const IL_GEAR_X        = 1050;
@@ -56,6 +57,7 @@
     muralWrap:     document.getElementById('muralWrap'),
     muralImg:      document.getElementById('muralImg'),
     closureImg:    document.getElementById('closureImg'),
+    creditsOverlay:document.getElementById('creditsOverlay'),
     muralLayers:   document.getElementById('muralLayers'),
     gearSystem:    document.getElementById('gearSystem'),
     driverLayer:   document.getElementById('driverLayer'),
@@ -294,12 +296,37 @@
     D.muralGear.style.width    = size + 'px';
     D.muralGear.style.height   = size + 'px';
     D.muralGear.style.bottom   = seat + 'px';          // stays bottom-seated; shrinks in place
-    D.muralGear.style.left     = (cx - size / 2) + 'px';
 
     // spin: circumference-accurate to the pan, fresh from 0. Reference the ROLLING
     // size (constant) so the changing entrance size doesn't make rotation jump.
     var muralDegrees = (S.panPx / (Math.PI * sizeSmall)) * 360;
-    gsap.set(D.muralGear, { rotation: p2 * muralDegrees });
+
+    // CLOSURE ease-to-stop. cityFrac is where the city ends within the FULL pan
+    // (S.cityPanPx of S.panPx). For p2 in [cityFrac, 1] — the closure landscape —
+    // the gear decelerates to a centered, motionless rest: ease-out spin (zero
+    // angular rate at p2=1) and center x eased to 0.5·vw. Before cityFrac it's the
+    // linear roll at settle x, unchanged.
+    var cityFrac = S.panPx > 0 ? S.cityPanPx / S.panPx : 1;
+    var rotation;
+    if (p2 <= cityFrac) {
+      rotation = p2 * muralDegrees;
+    } else {
+      var t = (p2 - cityFrac) / (1 - cityFrac);        // 0..1 across the closure
+      var k = 1 - (1 - t) * (1 - t);                   // ease-out → angular rate 0 at end
+      // Δ makes angular velocity continuous at the seam (no jerk): the constant
+      // city spin rate muralDegrees decays smoothly to zero across the closure.
+      var delta = muralDegrees * (1 - cityFrac) / 2;
+      rotation  = cityFrac * muralDegrees + delta * k;
+      cx        = settleX + (vw * 0.5 - settleX) * k;  // ease center to 0.5·vw
+    }
+    D.muralGear.style.left = (cx - size / 2) + 'px';
+    gsap.set(D.muralGear, { rotation: rotation });
+
+    // Closure credits overlay — fade in over the last stretch of the full pan.
+    if (D.creditsOverlay) {
+      var co = (p2 - CREDITS_FADE_START) / (1 - CREDITS_FADE_START);
+      D.creditsOverlay.style.opacity = Math.max(0, Math.min(1, co));
+    }
 
     // City-story progress (0..1 over the CITY only) — feeds chapter label, hotspots
     // and lazy-load so they stay mapped to the city while the full pan extends into
