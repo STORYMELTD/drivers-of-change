@@ -417,6 +417,16 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   opacity: 1;
 }
 
+/* Closure panorama — right of the city; left/width/height set in scaleMural().
+   z above the city layers so its feathered left edge crossfades over the seam. */
+.closure-img {
+  position: absolute;
+  top: 0;
+  max-width: none;
+  z-index: 200;
+  pointer-events: none;
+}
+
 /* ─────────────────────────────────────────
    LAYERS
 ───────────────────────────────────────── */

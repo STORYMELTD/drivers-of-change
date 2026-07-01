@@ -13,6 +13,8 @@
   const GEAR_INTRO_SCALE = 1.15;  // initial (pre-scroll) gear is 15% larger; rolling size unchanged
   const GEAR_MURAL_ENTER_SCALE = 1.15;  // phase-2: gear enters this large, shrinks to rolling (bump ~1.5 for more drama)
   const TRACK_H_PX       = 72;
+  const CLOSURE_W        = 7022; // closure panorama natural width (mural-space, at MURAL_H)
+  const SEAM_OVERLAP_PX  = 280;  // feathered overlap of closure's left edge onto the city (mural-space)
   // ── Bab→mural bridge tunables ──
   const BAB_ROLL_END       = 0.40;  // phase-1 p where the gear reaches the window & stops traveling
   const BAB_IDLE_SPIN      = 18;    // deg of extremely-slow idle spin over roll-end → 1
@@ -34,7 +36,9 @@
     scrollProgress: 0, currentChapter: -1,
     panelOpen: false, audioEnabled: false,
     trackImgEl: null,
-    babZoomPx: 0, panPx: 0,     // phase-1 (gate) and phase-2 (pan) scroll distances
+    babZoomPx: 0, panPx: 0,     // phase-1 (gate) and phase-2 (full pan) scroll distances
+    cityPanPx: 0,               // city-only travel (muralW - vw); chapters/layers/hotspots ride this
+    closureW: 0, totalW: 0,     // closure panorama width; full panorama width (city + closure)
     st1: null, st2: null,       // the two phase ScrollTriggers (for resize re-pose)
   };
 
@@ -51,6 +55,7 @@
     muralViewport: document.getElementById('muralViewport'),
     muralWrap:     document.getElementById('muralWrap'),
     muralImg:      document.getElementById('muralImg'),
+    closureImg:    document.getElementById('closureImg'),
     muralLayers:   document.getElementById('muralLayers'),
     gearSystem:    document.getElementById('gearSystem'),
     driverLayer:   document.getElementById('driverLayer'),
@@ -296,8 +301,12 @@
     var muralDegrees = (S.panPx / (Math.PI * sizeSmall)) * 360;
     gsap.set(D.muralGear, { rotation: p2 * muralDegrees });
 
-    S.scrollProgress = p2;
-    onScrollUpdate(p2);
+    // City-story progress (0..1 over the CITY only) — feeds chapter label, hotspots
+    // and lazy-load so they stay mapped to the city while the full pan extends into
+    // the closure. Clamps at 1 once you pan past the city into the landscape.
+    var cityProgress = S.cityPanPx > 0 ? Math.min(1, (p2 * S.panPx) / S.cityPanPx) : p2;
+    S.scrollProgress = cityProgress;
+    onScrollUpdate(cityProgress);
   }
 
   // ══════════════════════════════════════════
@@ -326,9 +335,24 @@
     D.muralImg.style.maxWidth = 'none';
     D.muralImg.style.opacity  = '1'; // base mural always visible
 
-    // #storyStage owns ALL scroll: gate zoom (babZoomPx) + city pan (panPx) + vh.
-    S.babZoomPx = vh * 3;                 // was the gate pin distance
-    S.panPx     = S.muralW - vw;          // horizontal pan distance
+    // Closure panorama, appended to the RIGHT of the city. Its feathered left
+    // SEAM_OVERLAP_PX overlaps the city's right edge so the seam crossfades.
+    S.closureW  = CLOSURE_W * S.muralScale;
+    var overlap = SEAM_OVERLAP_PX * S.muralScale;
+    S.totalW    = S.muralW + S.closureW - overlap;   // full panorama width
+    if (D.closureImg) {
+      D.closureImg.style.left   = (S.muralW - overlap) + 'px';
+      D.closureImg.style.width  = S.closureW + 'px';
+      D.closureImg.style.height = vh + 'px';
+    }
+    D.muralWrap.style.width = S.totalW + 'px';
+
+    // #storyStage owns ALL scroll: gate zoom (babZoomPx) + FULL pan (panPx) + vh.
+    // S.panPx is the full pan (city + closure). City content keeps its own basis:
+    // S.cityPanPx = S.muralW - vw (see initScrollEngine — do NOT swap it for panPx).
+    S.babZoomPx  = vh * 3;                 // gate zoom distance
+    S.cityPanPx  = S.muralW - vw;          // city-only travel (chapters/layers/hotspots ride this)
+    S.panPx      = S.totalW - vw;          // full horizontal pan (into the closure)
     D.storyStage.style.height = (S.babZoomPx + S.panPx + vh) + 'px';
 
     D.muralLayers.style.width  = S.muralW + 'px';
@@ -426,13 +450,15 @@
         });
       }
 
-      // Fade in — CRITICAL: offset by babZoomPx so the pan's 0..1 maps past the gate zoom.
+      // Fade in — offset by babZoomPx (past the gate zoom) and mapped on the CITY
+      // travel (S.cityPanPx), NOT the full pan, so it fires at the same city spot
+      // even though the pan now extends into the closure.
       if (layer.triggerAt === 0) {
         gsap.to(el, { opacity: 1, duration: 0.9, delay: 0.3 });
       } else {
         ScrollTrigger.create({
           trigger: D.storyStage,
-          start: () => 'top+=' + (S.babZoomPx + layer.triggerAt * S.panPx) + 'px top',
+          start: () => 'top+=' + (S.babZoomPx + layer.triggerAt * S.cityPanPx) + 'px top',
           onEnter:     () => gsap.to(el, { opacity: 1, duration: 0.9 }),
           onLeaveBack: () => gsap.to(el, { opacity: 0, duration: 0.5 }),
         });
@@ -445,17 +471,18 @@
       const box = document.getElementById('cbox-' + i);
       if (!box) return;
 
-      const buf = S.panPx * 0.015;
+      // City basis (S.cityPanPx), NOT the full pan — chapters fire at the same spots.
+      const buf = S.cityPanPx * 0.015;
 
       ScrollTrigger.create({
         trigger: D.storyStage,
-        start: () => 'top+=' + (S.babZoomPx + ch.scrollStart * S.panPx + buf) + 'px top',
+        start: () => 'top+=' + (S.babZoomPx + ch.scrollStart * S.cityPanPx + buf) + 'px top',
         onEnter:     () => gsap.to(box, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }),
         onLeaveBack: () => gsap.to(box, { opacity: 0, y: 24, duration: 0.4 }),
       });
       ScrollTrigger.create({
         trigger: D.storyStage,
-        start: () => 'top+=' + (S.babZoomPx + ch.scrollEnd * S.panPx - buf) + 'px top',
+        start: () => 'top+=' + (S.babZoomPx + ch.scrollEnd * S.cityPanPx - buf) + 'px top',
         onEnter:     () => gsap.to(box, { opacity: 0, y: -24, duration: 0.5, ease: 'power2.in' }),
         onLeaveBack: () => gsap.to(box, { opacity: 1, y: 0, duration: 0.4 }),
       });
@@ -523,8 +550,8 @@
       dot.title     = ch.title;
       dot.addEventListener('click', () => {
         if (S.phase !== 'mural') return;
-        // target lands in the PAN region (past the gate zoom)
-        const target = S.babZoomPx + ch.scrollStart * S.panPx;
+        // target lands in the pan region (past the gate zoom), on the CITY basis
+        const target = S.babZoomPx + ch.scrollStart * S.cityPanPx;
         gsap.to(window, { scrollTo: target, duration: 1.2, ease: 'power2.inOut' });
       });
       D.navDots.appendChild(dot);
