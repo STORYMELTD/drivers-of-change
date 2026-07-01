@@ -19,6 +19,24 @@ Deploy = push to `main`; Vercel serves the static files as-is.
 ### Cache-busting (important)
 CSS/JS are versioned with `?v=N` query strings in `index.html` (lines ~12, 156–157). **Whenever you edit `css/main.css`, `js/main.js`, or `js/story-data.js`, bump every `?v=N` in `index.html` together** (they are kept in lockstep — currently `v=13`). Forgetting this means the live site serves stale cached assets; nearly every recent commit is a bump for exactly this reason.
 
+## WORKING PRINCIPLE — Contextual & aesthetic awareness (not just the mechanical edit)
+Before finalizing any scene/asset/feature change, evaluate the WHOLE scene, not the isolated edit:
+
+Carry continuous elements through. Anything that spans the mural — the dented track, the gear/rail, ground line, horizon, sky, palette (#F4A228), lighting, motion language — must extend across any new or resized scene. No breaks, no orphaned edges.
+Match the aesthetic. New content inherits the scene's visual language (hand-painted style, dusk palette, pacing). Flag tonal clashes rather than shipping them.
+Always ask: "If I add or extend X, what spanning element or aesthetic does it break, stop short, or leave behind?" Name it and fix it in the SAME change.
+
+### HARD RULE — Never stretch. Tile or scale uniformly only. (CRITICAL)
+Images and components are NEVER stretched or squeezed to fit a space — no non-uniform scaling, no distorting an aspect ratio, ever.
+
+Repeating elements (dented track, patterns, backgrounds) → TILE at native aspect (uniform scale to the target height/width, then repeat). Let the last tile overrun and clip; never squeeze a tile to "fit."
+Single elements → scale UNIFORMLY (lock aspect) and position/crop; never distort.
+If something doesn't fill a space: tile it, letterbox it, or crop it — never stretch it.
+
+### Recorded misses (why these rules exist)
+
+Appended the closure landscape but left the dented track ending at the city edge — the gear would roll on nothing across the closure. Fix: track tiles to S.totalW (full panorama = city + closure), stepping x += scaledTileW with a uniform tile size — tiled, not stretched.
+
 ## Architecture
 
 Three files do all the work:

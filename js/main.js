@@ -358,7 +358,9 @@
     D.muralLayers.style.width  = S.muralW + 'px';
     D.muralLayers.style.height = vh + 'px';
 
-    D.gearSystem.style.width  = S.muralW + 'px';
+    // Track spans the FULL panorama (city + closure) so the gear always has rail
+    // beneath it — the dented track must not stop at the city edge.
+    D.gearSystem.style.width  = S.totalW + 'px';
     D.gearSystem.style.height = TRACK_H_PX + 'px';
 
     // The gear is posed entirely by the phase triggers (driveBab / panUpdate);
@@ -385,20 +387,25 @@
       return;
     }
 
+    // Tile across the FULL panorama (city + closure), not just the city, so the
+    // gear rolls on rail the whole way. (S.totalW is set by scaleMural; fall back
+    // to muralW if drawTrack fires from the image onload before the first size.)
+    const trackW     = S.totalW || S.muralW;
     const tileH      = S.trackImgEl.naturalHeight;
     const tileW      = S.trackImgEl.naturalWidth;
     const trackH     = TRACK_H_PX;
-    const tileScale  = trackH / tileH;
+    const tileScale  = trackH / tileH;              // uniform scale to track height (never squeezed)
     const scaledTileW = tileW * tileScale;
 
-    D.trackCanvas.width        = S.muralW;
+    D.trackCanvas.width        = trackW;
     D.trackCanvas.height       = trackH;
-    D.trackCanvas.style.width  = S.muralW + 'px';
+    D.trackCanvas.style.width  = trackW + 'px';
     D.trackCanvas.style.height = trackH + 'px';
 
     const ctx = D.trackCanvas.getContext('2d');
-    ctx.clearRect(0, 0, S.muralW, trackH);
-    for (let x = 0; x < S.muralW; x += scaledTileW) {
+    ctx.clearRect(0, 0, trackW, trackH);
+    // last tile overruns and clips at the canvas edge — tiled, never stretched
+    for (let x = 0; x < trackW; x += scaledTileW) {
       ctx.drawImage(S.trackImgEl, x, 0, scaledTileW, trackH);
     }
   }
