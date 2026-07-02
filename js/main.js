@@ -249,7 +249,7 @@
     // DIRECT MOVE — the city sits at its left edge (x=0) behind the gate the whole
     // time. The gate stays fully opaque through the zoom, then cuts away at the
     // end, dropping you straight into the mural at its left edge. No slide, no fade.
-    gsap.set(D.muralWrap, { x: 0, force3D: true });
+    D.muralWrap.style.transform = 'translate3d(0,0,0)';   // 3D → compositor path
     D.babSection.style.opacity = p < BAB_CUT_AT ? 1 : 0;
   }
 
@@ -295,10 +295,13 @@
     var seat    = Math.round(TRACK_H_PX * 0.15);
     var settleX = vw * GEAR_SETTLE_X_FRAC;             // settle center (single knob)
 
-    // pan the city — force3D so GSAP emits translate3d(x,0,0) (compositor path).
+    // pan the city — direct translate3d(x,0,0) so it's genuinely 3D (compositor
+    // path) without a permanent will-change on the giant wrap. GSAP set+force3D
+    // collapsed to a 2D matrix here, so we write the transform directly.
     // Transform only; never write left/top/width to the wrap (that would relayout).
-    gsap.set(D.muralWrap, { x: -p2 * S.panPx, force3D: true });
-    cullLayers(-p2 * S.panPx);            // display:none layers outside the viewport band
+    var panX = -p2 * S.panPx;
+    D.muralWrap.style.transform = 'translate3d(' + panX + 'px,0,0)';
+    cullLayers(panX);                     // display:none layers outside the viewport band
 
     // gear entrance: enters LARGE and shrinks to rolling size, while its center
     // travels left-edge (x=0) → settleX, over the first GEAR_ENTER_FRAC; then holds.
