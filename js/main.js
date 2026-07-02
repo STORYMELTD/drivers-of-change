@@ -41,6 +41,7 @@
     cityPanPx: 0,               // city-only travel (muralW - vw); chapters/layers/hotspots ride this
     closureW: 0, totalW: 0,     // closure panorama width; full panorama width (city + closure)
     st1: null, st2: null,       // the two phase ScrollTriggers (for resize re-pose)
+    rotateBlocked: null,        // portrait-gate state (null = not yet evaluated)
   };
 
   const D = {
@@ -74,6 +75,7 @@
     chapterLabel:  document.getElementById('chapterLabel'),
     ambientAudio:  document.getElementById('ambientAudio'),
     audioToggle:   document.getElementById('audioToggle'),
+    rotateGate:    document.getElementById('rotateGate'),
   };
 
   // ══════════════════════════════════════════
@@ -90,6 +92,7 @@
     buildChapterBoxes();
     buildHotspots();
     setupEvents();
+    setupRotateGate();
     runLoader();
   }
 
@@ -811,7 +814,7 @@
 
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && S.panelOpen) { closePanel(); return; }
-      if (S.phase !== 'mural') return;
+      if (S.phase !== 'mural' || S.rotateBlocked) return;
       const step = (document.body.scrollHeight - window.innerHeight) * 0.04;
       if (e.key === 'ArrowRight') window.scrollBy({ top:  step, behavior: 'smooth' });
       if (e.key === 'ArrowLeft')  window.scrollBy({ top: -step, behavior: 'smooth' });
@@ -824,21 +827,89 @@
     var tx0 = 0;
     document.addEventListener('touchstart', function(e) { tx0 = e.touches[0].clientX; }, { passive: true });
     document.addEventListener('touchend', function(e) {
-      if (S.phase !== 'mural') return;
+      if (S.phase !== 'mural' || S.rotateBlocked) return;
       var dx = tx0 - e.changedTouches[0].clientX;
       if (Math.abs(dx) > 40) window.scrollBy({ top: dx * 3, behavior: 'smooth' });
     }, { passive: true });
 
     window.addEventListener('resize', debounce(function() {
-      scaleMural();   // recomputes muralW, babZoomPx, panPx, #storyStage height
-      drawTrack();
-      if (typeof ScrollTrigger !== 'undefined') {
-        ScrollTrigger.refresh();   // recomputes function-form starts/ends + offsets
-        // re-pose the gear/city for the currently-active phase so resize won't desync
-        if (S.st1 && S.st1.isActive)      driveBab(S.st1.progress);
-        else if (S.st2 && S.st2.isActive) panUpdate(S.st2.progress);
-      }
+      var wasBlocked = S.rotateBlocked;
+      updateRotateGate();          // may flip the gate + relayout on unblock
+      if (S.rotateBlocked) return; // portrait: engine frozen, skip layout math
+      if (wasBlocked) return;      // unblock transition already relayout()ed
+      relayout();
     }, 200));
+  }
+
+  // Recompute all vw/vh-dependent layout and re-pose the active phase. Shared by
+  // resize and the portrait-gate unblock (entering landscape).
+  function relayout() {
+    scaleMural();   // recomputes muralW, babZoomPx, panPx, #storyStage height
+    drawTrack();
+    if (typeof ScrollTrigger !== 'undefined') {
+      ScrollTrigger.refresh();   // recomputes function-form starts/ends + offsets
+      // re-pose the gear/city for the currently-active phase so resize won't desync
+      if (S.st1 && S.st1.isActive)      driveBab(S.st1.progress);
+      else if (S.st2 && S.st2.isActive) panUpdate(S.st2.progress);
+    }
+  }
+
+  // ══════════════════════════════════════════
+  // MOBILE PORTRAIT GATE — rotate to landscape
+  // Blocks the experience on a small/touch screen held in portrait, where the
+  // landscape-first vw/vh math + ScrollTrigger scrub would be broken. No CSS
+  // rotate on the container (that desyncs pin/scrub) — we prompt for a real
+  // physical rotation and recompute layout when the viewport becomes landscape.
+  // ══════════════════════════════════════════
+  var mqSmall  = window.matchMedia('(orientation: portrait) and (max-width: 900px)');
+  var mqCoarse = window.matchMedia('(orientation: portrait) and (pointer: coarse)');
+  function shouldBlockRotate() { return mqSmall.matches || mqCoarse.matches; }
+
+  function updateRotateGate() {
+    var block = shouldBlockRotate();
+    if (block === S.rotateBlocked) return;   // no change
+    var wasBlocked = S.rotateBlocked;
+    S.rotateBlocked = block;
+
+    if (block) {
+      D.rotateGate.classList.add('visible');
+      D.rotateGate.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('rotate-locked');   // freeze the scrub
+    } else {
+      D.rotateGate.classList.remove('visible');
+      D.rotateGate.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('rotate-locked');
+      // Only a real blocked→landscape transition needs a relayout (a first
+      // load already in landscape starts from null, not true).
+      if (wasBlocked === true) relayout();
+    }
+  }
+
+  function setupRotateGate() {
+    updateRotateGate();  // set initial state
+
+    var onChange = function() { updateRotateGate(); };
+    // Modern browsers: MediaQueryList.addEventListener; old Safari: addListener.
+    [mqSmall, mqCoarse].forEach(function(mq) {
+      if (mq.addEventListener) mq.addEventListener('change', onChange);
+      else if (mq.addListener) mq.addListener(onChange);
+    });
+    window.addEventListener('orientationchange', onChange);
+
+    // Android-only best effort: on a tap while gated, request fullscreen and
+    // lock to landscape. iOS lacks these APIs and silently falls back to the
+    // visual prompt. Kept inside try/catch — a rejected promise is harmless.
+    D.rotateGate.addEventListener('click', function() {
+      if (!S.rotateBlocked) return;
+      try {
+        var el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen();
+        if (screen.orientation && screen.orientation.lock) {
+          var p = screen.orientation.lock('landscape');
+          if (p && p.catch) p.catch(function() {});
+        }
+      } catch (e) { /* iOS / unsupported — prompt handles it */ }
+    });
   }
 
   function debounce(fn, ms) {

@@ -953,3 +953,61 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   opacity: 1;
 
 }
+
+/* ══════════════════════════════════════════
+   MOBILE PORTRAIT GATE — rotate to landscape
+   Full-viewport blocking layer above EVERYTHING (max app z-index is 1000).
+   Only shown on a small/touch screen held in portrait; toggled by main.js.
+══════════════════════════════════════════ */
+.rotate-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: none;              /* .visible → flex */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8vw;
+  background: #14110d;        /* dark palette */
+  color: #F4A228;
+  font-family: 'Ubuntu', sans-serif;
+  touch-action: none;        /* swallow gestures — scene behind stays inert */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.rotate-gate.visible { display: flex; }
+
+.rotate-gate__inner { max-width: 340px; }
+
+.rotate-gate__glyph {
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 26px;
+  color: #F4A228;
+}
+/* Tip the phone body to landscape and back as a rotate hint. */
+.rotate-gate__phone {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rotate-hint 2.6s ease-in-out infinite;
+}
+@keyframes rotate-hint {
+  0%, 40%   { transform: rotate(0deg); }
+  65%, 90%  { transform: rotate(-90deg); }
+  100%      { transform: rotate(0deg); }
+}
+
+.rotate-gate__text {
+  margin: 0;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+
+/* While the gate is up, freeze the page (and thus the ScrollTrigger scrub),
+   overriding whatever inline overflow the current phase set. */
+body.rotate-locked { overflow: hidden !important; }
