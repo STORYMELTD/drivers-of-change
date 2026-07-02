@@ -566,7 +566,10 @@
       d.classList.toggle('active',  i === idx);
       d.classList.toggle('visited', i <  idx);
     });
-    D.chapterLabel.textContent = ch.title;
+    // Right of the nav: "Chapter N · Title — subtitle" (subtitle placeholder until filled).
+    var label = ch.label + ' · ' + ch.title;
+    if (ch.sections && ch.sections.length) label += ' — ' + chapterSubtitle(ch);
+    D.chapterLabel.textContent = label;
   }
 
   // ══════════════════════════════════════════
@@ -623,31 +626,91 @@
     });
   }
 
+  // #333 at 90% for header/subtitle; per-chapter fill at 90% for the body.
+  function hexToRgba(hex, a) {
+    const h = (hex || '#333333').replace('#', '');
+    const r = parseInt(h.substr(0, 2), 16);
+    const g = parseInt(h.substr(2, 2), 16);
+    const b = parseInt(h.substr(4, 2), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  }
+  // Missing subtitle / section titles fall back to bracketed placeholders (source
+  // content has none — TODO in story-data.js). We don't invent copy here.
+  function chapterSubtitle(ch) {
+    return (ch.subtitle && ch.subtitle.trim()) ? ch.subtitle : '[subtitle]';
+  }
+  function sectionTitle(sec, i) {
+    return (sec.title && sec.title.trim()) ? sec.title : '[section title ' + (i + 1) + ']';
+  }
+
   function buildChapterBoxes() {
     STORY_DATA.chapters.forEach((ch, i) => {
+      // Only the 5 content chapters (those with `sections`) get boxes — the
+      // prologue has none and is intentionally not drawn as a box.
+      if (!ch.sections || !ch.sections.length) return;
+
       const box = document.createElement('div');
       box.className  = 'chapter-box';
-      box.id         = 'cbox-' + i;
+      box.id         = 'cbox-' + i;              // index matches the scroll triggers
+      box.dataset.chapterIndex = i;
       box.style.opacity   = '0';
       box.style.transform = 'translateY(24px)';
 
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'chapter-box__close';
-      closeBtn.setAttribute('aria-label', 'Close');
-      closeBtn.innerHTML = '<img src="assets/images/X.svg" alt="Close"/>';
-      closeBtn.addEventListener('click', function(e) {
+      // Accordion rows from story-data sections. One open at a time; the panel
+      // scrolls internally (max-height + overflow-y). Rows default to first open.
+      const rows = ch.sections.map(function (sec, si) {
+        const open = si === 0;
+        return (
+          '<div class="cbox-row' + (open ? ' open' : '') + '">' +
+            '<button class="cbox-row__header" aria-expanded="' + open + '">' +
+              '<span class="cbox-row__title">' + sectionTitle(sec, si) + '</span>' +
+              '<span class="cbox-row__toggle" aria-hidden="true">' + (open ? '−' : '+') + '</span>' +
+            '</button>' +
+            '<div class="cbox-row__panel">' +
+              '<div class="cbox-row__panel-inner">' + sec.body + '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }).join('');
+
+      box.innerHTML =
+        '<div class="chapter-box__header">' +
+          '<div class="chapter-box__heading">' +
+            '<p class="chapter-box__label">' + ch.label + '</p>' +
+            '<h2 class="chapter-box__title">' + ch.title + '</h2>' +
+          '</div>' +
+          '<button class="chapter-box__close" aria-label="Close">' +
+            '<img src="assets/images/X.svg" alt="Close"/>' +
+          '</button>' +
+        '</div>' +
+        '<p class="chapter-box__subtitle">' + chapterSubtitle(ch) + '</p>' +
+        '<div class="chapter-box__body">' + rows + '</div>';
+
+      // per-chapter body fill at 90%
+      box.querySelector('.chapter-box__body').style.background = hexToRgba(ch.color, 0.9);
+
+      box.querySelector('.chapter-box__close').addEventListener('click', function (e) {
         e.stopPropagation();
         gsap.to(box, { opacity: 0, y: -20, duration: 0.4 });
       });
 
-      const bodyText = (ch.body || []).map(function(p) { return '<p>' + p + '</p>'; }).join('');
-      box.innerHTML =
-        '<div class="chapter-box__header">' +
-          '<p class="chapter-box__label">' + ch.label + '</p>' +
-          '<h2 class="chapter-box__title">' + ch.title + '</h2>' +
-        '</div>' +
-        '<div class="chapter-box__body">' + bodyText + '</div>';
-      box.appendChild(closeBtn);
+      // Accordion toggling — one row open at a time.
+      box.querySelectorAll('.cbox-row').forEach(function (row) {
+        row.querySelector('.cbox-row__header').addEventListener('click', function () {
+          const isOpen = row.classList.contains('open');
+          box.querySelectorAll('.cbox-row').forEach(function (r) {
+            r.classList.remove('open');
+            r.querySelector('.cbox-row__header').setAttribute('aria-expanded', 'false');
+            r.querySelector('.cbox-row__toggle').textContent = '+';
+          });
+          if (!isOpen) {
+            row.classList.add('open');
+            row.querySelector('.cbox-row__header').setAttribute('aria-expanded', 'true');
+            row.querySelector('.cbox-row__toggle').textContent = '−';
+          }
+        });
+      });
+
       D.chaptersEl.appendChild(box);
     });
     positionChapterBoxes();
@@ -655,10 +718,14 @@
 
   function positionChapterBoxes() {
     if (!S.muralW) return;
-    document.querySelectorAll('.chapter-box').forEach(function(box, i) {
-      const ch = STORY_DATA.chapters[i];
+    document.querySelectorAll('.chapter-box').forEach(function(box) {
+      const ch = STORY_DATA.chapters[+box.dataset.chapterIndex];
       if (!ch) return;
-      box.style.left = ((ch.scrollStart + 0.04) * S.muralW) + 'px';
+      // Distribute along the city by pan x-center (fraction of the mural), centering
+      // the box on that point. Rides #muralWrap; the +babZoomPx fade offset is set
+      // separately in initScrollEngine (unchanged).
+      const cx = (ch.xCenterPct / 100) * S.muralW;
+      box.style.left = Math.round(cx - (box.offsetWidth || 340) / 2) + 'px';
       box.style.top  = (S.muralH * 0.10) + 'px';
     });
   }

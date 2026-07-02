@@ -20,7 +20,7 @@ html { scroll-behavior: auto; }
 body {
   background: #F4A228; /* StoryMe orange behind everything — no black ever shows through */
   color: var(--text);
-  font-family: 'Ubuntu', system-ui, sans-serif;
+  font-family: 'Ubuntu', sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -575,70 +575,126 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   z-index: 500;
   position: absolute;
   width: 340px;
-  background: rgba(12, 24, 14, 0.93);
-  border: 1px solid rgba(196,163,90,0.35);
+  background: transparent;              /* header/subtitle/body supply their own fills */
   border-radius: 6px;
-  overflow: hidden;
+  overflow: hidden;                     /* clip children to the rounded corners */
+  box-shadow: 0 4px 14px rgba(0,0,0,0.22);
   pointer-events: all;
-  /* Start invisible and shifted down */
   opacity: 1;
-  transform: translateY(24px);
-  /* GSAP controls animation */
+  transform: translateY(24px);          /* GSAP controls the reveal */
 }
 
+/* Header — dark gray #333 @ 90%; holds label · title · close */
 .chapter-box__header {
-  padding: 22px 44px 16px 24px;
-  border-bottom: 1px solid rgba(196,163,90,0.15);
-  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 16px 12px 22px;
+  background: rgba(51,51,51,0.9);
 }
+.chapter-box__heading { min-width: 0; }
 
 .chapter-box__label {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--gold);
-  margin-bottom: 6px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 5px;
 }
 
 .chapter-box__title {
-  font-family: 'Ubuntu', serif;
+  font-family: 'Ubuntu', sans-serif;
   font-size: 1.25rem;
   font-weight: 500;
   font-style: italic;
-  color: var(--text);
+  color: #fff;
   line-height: 1.2;
 }
 
-/* Scrollable text area inside box */
+/* Subtitle — same dark gray, continuous with the header */
+.chapter-box__subtitle {
+  background: rgba(51,51,51,0.9);
+  padding: 0 22px 14px;
+  font-size: 0.8rem;
+  font-style: italic;
+  line-height: 1.4;
+  color: rgba(255,255,255,0.7);
+}
+
+/* Body — per-chapter fill @ 90% (set inline in JS); holds the accordion */
 .chapter-box__body {
-  padding: 16px 24px 20px;
-  max-height: 42vh;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Accordion rows */
+.cbox-row {
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.10);
+}
+.cbox-row__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+.cbox-row__title { min-width: 0; }
+.cbox-row__toggle {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
+  color: #fff;
+}
+/* Collapsed → open: the panel scrolls internally at a fixed max-height */
+.cbox-row__panel { max-height: 0; overflow: hidden; transition: max-height 0.3s var(--ease-out); }
+.cbox-row.open .cbox-row__panel {
+  max-height: 22vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
-  scrollbar-color: rgba(196,163,90,0.3) transparent;
-  font-size: 0.9rem;
-  line-height: 1.78;
-  color: rgba(240,237,230,0.75);
+  scrollbar-color: rgba(255,255,255,0.35) transparent;
 }
-.chapter-box__body::-webkit-scrollbar { width: 4px; }
-.chapter-box__body::-webkit-scrollbar-track { background: transparent; }
-.chapter-box__body::-webkit-scrollbar-thumb { background: rgba(196,163,90,0.3); border-radius: 4px; }
-.chapter-box__body p + p { margin-top: 0.85em; }
+.cbox-row__panel::-webkit-scrollbar { width: 4px; }
+.cbox-row__panel::-webkit-scrollbar-track { background: transparent; }
+.cbox-row__panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.35); border-radius: 4px; }
+.cbox-row__panel-inner {
+  padding: 0 12px 12px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.92);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+}
 
+/* Close — in-flow at the top-right of the header */
 .chapter-box__close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
+  flex: none;
   width: 26px;
   height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.5;
+  opacity: 0.7;
   transition: opacity 0.2s;
-  flex-shrink: 0;
 }
 .chapter-box__close:hover { opacity: 1; }
 .chapter-box__close img { width: 14px; height: 14px; }
@@ -729,7 +785,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 
 .panel-content { padding: 52px 30px 44px; }
 .panel-chapter  { font-size: 10px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
-.panel-title    { font-family: 'Ubuntu', serif; font-size: 1.5rem; font-weight: 500; font-style: italic; color: var(--text); margin-bottom: 16px; line-height: 1.25; }
+.panel-title    { font-family: 'Ubuntu', sans-serif; font-size: 1.5rem; font-weight: 500; font-style: italic; color: var(--text); margin-bottom: 16px; line-height: 1.25; }
 .panel-body     { font-size: 0.93rem; line-height: 1.8; color: rgba(240,237,230,0.72); }
 .panel-body p + p { margin-top: 0.9em; }
 
@@ -799,10 +855,12 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   font-size: 11px;
   font-weight: 500;
   color: var(--gold);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  min-width: 110px;
+  letter-spacing: 0.04em;
   text-align: right;
+  max-width: 380px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ─────────────────────────────────────────
