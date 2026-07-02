@@ -27,6 +27,7 @@
   const CREDITS_FADE_START = 0.92;  // phase-2 p2 where the closure credits overlay begins fading in (→1.0)
   const CLOSURE_GEAR_X_FRAC = 1.02; // closure rest: gear CENTER as fraction of vw — pushed hard right so ~2/3 sits off-frame (only the left arc shows)
   const NAV_DEFAULT_EXPANDED = true; // nav starts expanded (dots+labels); false = starts as the collapsed "Chapters" tab
+  const MOTION_MAX_CONCURRENT = 16;  // mural idle-motion: cap simultaneously-running animations
   const IL_CANVAS_W      = 1496;  // UX artboard width  (matches loader reference)
   const IL_CANVAS_H      = 807;   // UX artboard height (matches loader reference)
   const IL_GEAR_X        = 1050;
@@ -96,6 +97,7 @@
     buildHotspots();
     setupEvents();
     setupRotateGate();
+    setupLandingParallax();
     runLoader();
   }
 
@@ -159,6 +161,7 @@
     buildLayers();
     initScrollEngine();                // the two phase triggers + layer/chapter triggers
     ScrollTrigger.refresh();
+    setupMuralMotion();                // governed idle animations on `motion` layers
   }
 
   // Base (un-scaled) gear pixel size for the current viewport — single source
@@ -486,15 +489,9 @@
       // composition breaks). Layers are children of #muralWrap, so they ride
       // the base pan automatically — no per-layer x-tween needed.
 
-      if (layer.type === 'sway') {
-        gsap.to(el, { rotation: 1.5, repeat: -1, yoyo: true, duration: 3 + Math.random() * 2, ease: 'sine.inOut', delay: Math.random() * 2, transformOrigin: '50% 100%' });
-      }
-      if (layer.type === 'float') {
-        gsap.to(el, {
-          y: -(8 + Math.random() * 6), repeat: -1, yoyo: true,
-          duration: 2.5 + Math.random() * 2, ease: 'sine.inOut', delay: Math.random(),
-        });
-      }
+      // Idle motion is governed centrally (see setupMuralMotion): only layers with
+      // a `motion` field animate, gated by IntersectionObserver + a concurrency cap,
+      // and fully disabled under prefers-reduced-motion / on mobile.
 
       // Fade in — offset by babZoomPx (past the gate zoom) and mapped on the CITY
       // travel (S.cityPanPx), NOT the full pan, so it fires at the same city spot
@@ -646,6 +643,117 @@
       img.style.opacity       = layer.triggerAt ? '0' : '1';
       D.muralLayers.appendChild(img);
     });
+  }
+
+  // ══════════════════════════════════════════
+  // MURAL IDLE MOTION — transform-only catalog, governed
+  // Only layers with a `motion` field animate; each gated by IntersectionObserver
+  // (on-screen only), capped by MOTION_MAX_CONCURRENT, and disabled under
+  // prefers-reduced-motion / on mobile. Phase randomized so nothing syncs.
+  // ══════════════════════════════════════════
+  var motionActive = 0;                     // concurrency counter
+  function mrand(a, b) { return a + Math.random() * (b - a); }
+
+  function buildMotion(el, motion) {
+    var ph = Math.random();                 // randomized phase (delay)
+    switch (motion) {
+      case 'sway':                          // trees / cypress / bushes — pivot at base
+        gsap.set(el, { transformOrigin: '50% 100%' });
+        return gsap.to(el, { rotation: mrand(1.1, 2.0), duration: mrand(3, 5), repeat: -1, yoyo: true, ease: 'sine.inOut', delay: ph * 2.5 });
+      case 'sway-hang':                     // hanging planters — pendulum from the top
+        gsap.set(el, { transformOrigin: '50% 0%' });
+        return gsap.to(el, { rotation: mrand(2.4, 3.8), duration: mrand(2.4, 3.6), repeat: -1, yoyo: true, ease: 'sine.inOut', delay: ph * 2.5 });
+      case 'float':                         // hedges — gentle vertical bob
+        return gsap.to(el, { y: -mrand(6, 12), duration: mrand(2.6, 4), repeat: -1, yoyo: true, ease: 'sine.inOut', delay: ph * 2 });
+      case 'grow':                          // grass — scaleY pulse from the base
+        gsap.set(el, { transformOrigin: '50% 100%' });
+        return gsap.to(el, { scaleY: mrand(1.04, 1.09), duration: mrand(2.6, 4), repeat: -1, yoyo: true, ease: 'sine.inOut', delay: ph * 2 });
+      case 'drift':                         // debris/bags/clouds — translate + slow scale/skew
+        gsap.set(el, { transformOrigin: '50% 100%' });
+        return gsap.to(el, { x: mrand(6, 14), y: -mrand(3, 7), scale: mrand(1.03, 1.07), skewX: mrand(1, 3), duration: mrand(4, 7), repeat: -1, yoyo: true, ease: 'sine.inOut', delay: ph * 3 });
+      case 'flow':                          // water — horizontal shear/scroll (catalog; no water layer yet)
+        return gsap.to(el, { skewX: mrand(2, 4), x: mrand(3, 7), duration: mrand(3, 5), repeat: -1, yoyo: true, ease: 'sine.inOut', delay: ph * 2 });
+      case 'ripple':                        // splash/ripple — scale pulse (catalog; no water layer yet)
+        return gsap.to(el, { scale: mrand(1.03, 1.06), duration: mrand(1.6, 2.6), repeat: -1, yoyo: true, ease: 'sine.inOut', delay: ph * 2 });
+      case 'fly': {                         // bird — path drift + bob + tilt
+        var tf = gsap.timeline({ delay: ph * 2 });
+        tf.to(el, { x: mrand(18, 34), duration: mrand(3.5, 5), repeat: -1, yoyo: true, ease: 'sine.inOut' }, 0);
+        tf.to(el, { y: -mrand(8, 16), duration: mrand(0.9, 1.5), repeat: -1, yoyo: true, ease: 'sine.inOut' }, 0);
+        tf.to(el, { rotation: mrand(-4, 4), duration: mrand(1.2, 2), repeat: -1, yoyo: true, ease: 'sine.inOut' }, 0);
+        return tf;
+      }
+      case 'peck': {                        // ground bird — dip to the seeds on an interval
+        gsap.set(el, { transformOrigin: '50% 100%' });
+        var tp = gsap.timeline({ repeat: -1, repeatDelay: mrand(1.2, 2.6), delay: ph * 2 });
+        tp.to(el, { y: mrand(4, 8), rotation: mrand(8, 14), duration: 0.32, ease: 'power2.in' })
+          .to(el, { y: 0, rotation: 0, duration: 0.5, ease: 'power2.out' });
+        return tp;
+      }
+      default:                             // unclear object → gentle default sway
+        gsap.set(el, { transformOrigin: '50% 100%' });
+        return gsap.to(el, { rotation: 1.3, duration: mrand(3, 5), repeat: -1, yoyo: true, ease: 'sine.inOut', delay: ph * 2.5 });
+    }
+  }
+
+  function startMotion(el, motion) {
+    if (el._motionTween || motionActive >= MOTION_MAX_CONCURRENT) return;
+    el._motionTween = buildMotion(el, motion);
+    if (el._motionTween) motionActive++;
+  }
+  function stopMotion(el) {
+    if (!el._motionTween) return;
+    el._motionTween.kill();
+    el._motionTween = null;
+    motionActive--;
+    gsap.set(el, { clearProps: 'transform' });   // reset pose; opacity/lazy-load untouched
+  }
+
+  function setupMuralMotion() {
+    if (typeof IntersectionObserver === 'undefined' || typeof gsap === 'undefined') return;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var mobile  = window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(max-width: 900px)').matches;
+    if (reduced || mobile) return;         // governance: off for reduced-motion & mobile
+
+    var byId = {};
+    STORY_DATA.layers.forEach(function (l) { if (l.motion) byId[l.id] = l.motion; });
+    var els = [].slice.call(D.muralLayers.querySelectorAll('.mural-layer'))
+                .filter(function (el) { return byId[el.dataset.layerId]; });
+    if (!els.length) return;
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) startMotion(e.target, byId[e.target.dataset.layerId]);
+        else stopMotion(e.target);
+      });
+    }, { root: null, rootMargin: '0px', threshold: 0 });
+    els.forEach(function (el) { io.observe(el); });   // only on-screen layers animate
+  }
+
+  // ══════════════════════════════════════════
+  // LANDING SKYLINE PARALLAX — pointer-driven depth (eased, GPU transforms)
+  // ══════════════════════════════════════════
+  function setupLandingParallax() {
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var mobile  = window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(max-width: 900px)').matches;
+    if (reduced || mobile) return;
+    var bg  = document.querySelector('.landing__bg');
+    var sky = document.querySelector('.landing__quds');
+    if (!bg || !sky) return;
+
+    var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+    function tick() {
+      cx += (tx - cx) * 0.08;              // ease toward pointer target
+      cy += (ty - cy) * 0.08;
+      bg.style.transform  = 'translate3d(' + (cx * -8)  + 'px,' + (cy * -5)  + 'px,0) scale(1.06)'; // far plane
+      sky.style.transform = 'translate3d(' + (cx * -22) + 'px,' + (cy * -10) + 'px,0)';             // skyline, nearer
+      raf = (Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001) ? requestAnimationFrame(tick) : null;
+    }
+    window.addEventListener('pointermove', function (e) {
+      if (S.phase !== 'landing') return;   // only on the title screen
+      tx = (e.clientX / window.innerWidth  - 0.5) * 2;
+      ty = (e.clientY / window.innerHeight - 0.5) * 2;
+      if (!raf) raf = requestAnimationFrame(tick);
+    }, { passive: true });
   }
 
   // #333 at 90% for header/subtitle; per-chapter fill at 90% for the body.
