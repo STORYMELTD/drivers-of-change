@@ -8,7 +8,7 @@
   --gear-small:  294px;   /* 60% */
   --gear-loader: 98px;    /* 20% */
   --track-h:     72px;
-  --nav-h:       56px;
+  --nav-h:       18px;   /* slim bar — ~30% of the former 56px (−70%) */
   --gold:        #C4A35A;
   --deep:        #0d1a0f;
   --text:        #F0EDE6;
@@ -812,25 +812,34 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 .story-nav {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: var(--nav-h);
   z-index: 70;
-  background: rgba(8,16,10,0.88);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(196,163,90,0.12);
   opacity: 1;
   transform: translateY(-100%);
   transition: opacity 0.5s, transform 0.5s var(--ease-out);
+  pointer-events: none;              /* only the bar + tab catch clicks */
 }
 .story-nav.visible { opacity: 1; transform: translateY(0); }
+
+/* Full-width slim bar — collapses to height 0 (animated) */
+.story-nav__bar {
+  pointer-events: auto;
+  height: var(--nav-h);
+  overflow: hidden;
+  background: rgba(8,16,10,0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(196,163,90,0.12);
+  transition: height 0.4s var(--ease-out), border-color 0.4s;
+}
+.story-nav.collapsed .story-nav__bar { height: 0; border-bottom-color: transparent; }
 
 .story-nav__inner {
   max-width: 860px;
   margin: 0 auto;
-  height: 100%;
+  height: var(--nav-h);
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 24px;
+  gap: 12px;
+  padding: 0 16px;
 }
 
 .nav-dots {
@@ -840,26 +849,27 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   gap: 0;
 }
 .nav-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: rgba(255,255,255,0.18);
-  border: 1.5px solid rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.22);
   cursor: pointer;
   transition: all 0.3s var(--ease-out);
   flex-shrink: 0;
 }
 .nav-dot:hover  { border-color: var(--gold); }
-.nav-dot.active { background: var(--gold); border-color: var(--gold); transform: scale(1.45); }
+.nav-dot.active { background: var(--gold); border-color: var(--gold); transform: scale(1.4); }
 .nav-dot.visited{ background: rgba(196,163,90,0.45); border-color: rgba(196,163,90,0.45); }
-.nav-dot-line   { flex: 1; height: 1px; background: rgba(255,255,255,0.08); min-width: 10px; }
+.nav-dot-line   { flex: 1; height: 1px; background: rgba(255,255,255,0.08); min-width: 8px; }
 
 .nav-progress {
-  width: 90px;
+  width: 60px;
   height: 2px;
   background: rgba(255,255,255,0.08);
   border-radius: 2px;
   overflow: hidden;
+  flex: none;
 }
 .nav-progress__fill {
   height: 100%;
@@ -869,15 +879,53 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 }
 
 .nav-label {
-  font-size: 11px;
+  font-size: 9.5px;
   font-weight: 500;
   color: var(--gold);
   letter-spacing: 0.04em;
   text-align: right;
-  max-width: 380px;
+  max-width: 340px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Collapse chevron — lives in the expanded bar */
+.nav-collapse {
+  flex: none;
+  color: var(--gold);
+  font-size: 11px;
+  line-height: 1;
+  padding: 2px 4px;
+  opacity: 0.8;
+}
+.nav-collapse:hover { opacity: 1; }
+
+/* Collapsed tab — the only thing shown when collapsed */
+.nav-tab {
+  pointer-events: auto;
+  display: none;
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 16px;
+  background: rgba(8,16,10,0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(196,163,90,0.12);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.nav-tab:hover { color: #fff; }
+.story-nav.collapsed .nav-tab { display: block; }
+
+/* Mobile / rotate-gate breakpoint — hide the nav entirely */
+@media (pointer: coarse), (max-width: 900px) {
+  .story-nav { display: none; }
 }
 
 /* ─────────────────────────────────────────

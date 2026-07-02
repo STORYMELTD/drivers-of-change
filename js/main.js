@@ -26,6 +26,7 @@
   const GEAR_SETTLE_X_FRAC = 0.50;  // phase-2: gear settle center as a fraction of vw (single knob)
   const CREDITS_FADE_START = 0.92;  // phase-2 p2 where the closure credits overlay begins fading in (→1.0)
   const CLOSURE_GEAR_X_FRAC = 1.02; // closure rest: gear CENTER as fraction of vw — pushed hard right so ~2/3 sits off-frame (only the left arc shows)
+  const NAV_DEFAULT_EXPANDED = true; // nav starts expanded (dots+labels); false = starts as the collapsed "Chapters" tab
   const IL_CANVAS_W      = 1496;  // UX artboard width  (matches loader reference)
   const IL_CANVAS_H      = 807;   // UX artboard height (matches loader reference)
   const IL_GEAR_X        = 1050;
@@ -90,6 +91,7 @@
 
     scaleMural();
     buildNav();
+    setupNavToggle();
     buildChapterBoxes();
     buildHotspots();
     setupEvents();
@@ -598,6 +600,15 @@
       });
       D.navDots.appendChild(dot);
     });
+  }
+
+  // Nav expand/collapse: expanded = slim dots+labels bar; collapsed = "Chapters" tab.
+  function setupNavToggle() {
+    D.storyNav.classList.toggle('collapsed', !NAV_DEFAULT_EXPANDED);
+    var collapse = document.getElementById('navCollapse');
+    var expand   = document.getElementById('navExpand');
+    if (collapse) collapse.addEventListener('click', function () { D.storyNav.classList.add('collapsed'); });
+    if (expand)   expand.addEventListener('click', function () { D.storyNav.classList.remove('collapsed'); });
   }
 
   function buildLayers() {
