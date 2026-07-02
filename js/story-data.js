@@ -22,33 +22,32 @@ const STORY_DATA = {
   chapters: [
     { id:0, label:'Prologue', title:'A City in Need', scrollStart:0, scrollEnd:0.14, color:'#C4A35A',
       body:['Environmental problems in East Jerusalem are not only technical failures.','A missed waste-collection route, an overflowing sewage line, a neighborhood without green space — all point to unequal planning, unequal budgets, and unequal access to environmental rights.'] },
-    // TODO(chapters 1-5): `subtitle` + each section `title` are empty — source content
-    // has no titles/subtitles. Fill from the mockup; do not invent text. Falls back to
-    // [subtitle] / [section title N] placeholders in the UI until filled.
-    { id:1, label:'Chapter 1', title:'Context', subtitle:'', scrollStart:0.14, scrollEnd:0.30, color:'#009C92', xCenterPct:18.5,
+    // Chapters 1-5: `subtitle` + section `title`s are provisional copy derived from each
+    // section's body (and the project's hotspot vocabulary) — swap for final mockup copy if it differs.
+    { id:1, label:'Chapter 1', title:'Context', subtitle:'Unequal services, unequal rights', scrollStart:0.14, scrollEnd:0.30, color:'#009C92', xCenterPct:18.5,
       sections:[
-        { title:'', body:'In 2016, East Jerusalem received only 10% of hygiene workers, 7% of garbage containers, and 6% of waste collection routes.' },
-        { title:'', body:'Only 13% of annexed East Jerusalem land was left for Palestinian building. In 2013, only 10.1% of the Jerusalem Municipality budget benefited Palestinians.' },
+        { title:'Unequal Services', body:'In 2016, East Jerusalem received only 10% of hygiene workers, 7% of garbage containers, and 6% of waste collection routes.' },
+        { title:'Land & Budget', body:'Only 13% of annexed East Jerusalem land was left for Palestinian building. In 2013, only 10.1% of the Jerusalem Municipality budget benefited Palestinians.' },
       ] },
-    { id:2, label:'Chapter 2', title:'Community Action', subtitle:'', scrollStart:0.30, scrollEnd:0.50, color:'#3FA7F3', xCenterPct:31.5,
+    { id:2, label:'Chapter 2', title:'Community Action', subtitle:'Women turning waste into change', scrollStart:0.30, scrollEnd:0.50, color:'#3FA7F3', xCenterPct:31.5,
       sections:[
-        { title:'', body:'59 women joined zero-waste workshops. 55 women learned plastic-bag upcycling — turning pollution into practical craft.' },
-        { title:'', body:'900 cloth bags were distributed across the Old City, Al-Ayzareh, and Al-Ram. "Start with your environment; be the first to drive the change."' },
+        { title:'Women as Change Actors', body:'59 women joined zero-waste workshops. 55 women learned plastic-bag upcycling — turning pollution into practical craft.' },
+        { title:'900 Cloth Bags', body:'900 cloth bags were distributed across the Old City, Al-Ayzareh, and Al-Ram. "Start with your environment; be the first to drive the change."' },
       ] },
-    { id:3, label:'Chapter 3', title:'School Action', subtitle:'', scrollStart:0.50, scrollEnd:0.67, color:'#B91459', xCenterPct:50.5,
+    { id:3, label:'Chapter 3', title:'School Action', subtitle:'Students growing greener schools', scrollStart:0.50, scrollEnd:0.67, color:'#B91459', xCenterPct:50.5,
       sections:[
-        { title:'', body:'More than 300 students from grades 7-10 across ten secondary schools joined environmental clubs, awareness campaigns, and gardening projects.' },
-        { title:'', body:'The Terra Santa pilot introduced a raised herbal garden, compost tumbler, and aquaponic NFT green wall. Students prepared soil, planted, and learned.' },
+        { title:'Students as Leaders', body:'More than 300 students from grades 7-10 across ten secondary schools joined environmental clubs, awareness campaigns, and gardening projects.' },
+        { title:'Terra Santa Pilot', body:'The Terra Santa pilot introduced a raised herbal garden, compost tumbler, and aquaponic NFT green wall. Students prepared soil, planted, and learned.' },
       ] },
-    { id:4, label:'Chapter 4', title:'Advocacy', subtitle:'', scrollStart:0.67, scrollEnd:0.84, color:'#FF9A1D', xCenterPct:61.5,
+    { id:4, label:'Chapter 4', title:'Advocacy', subtitle:'From dialogue to legal evidence', scrollStart:0.67, scrollEnd:0.84, color:'#FF9A1D', xCenterPct:61.5,
       sections:[
-        { title:'', body:'Ten dialogue meetings brought together community leaders, organizations, local businesses, and municipal representatives.' },
-        { title:'', body:'The legal study framed environmental discrimination through international human rights law — addressing the right to water, land rights, and the prohibition on altering occupied territory.' },
+        { title:'Community Dialogue', body:'Ten dialogue meetings brought together community leaders, organizations, local businesses, and municipal representatives.' },
+        { title:'Legal Evidence', body:'The legal study framed environmental discrimination through international human rights law — addressing the right to water, land rights, and the prohibition on altering occupied territory.' },
       ] },
-    { id:5, label:'Chapter 5', title:'Outcomes', subtitle:'', scrollStart:0.84, scrollEnd:1.0, color:'#EF5A24', xCenterPct:72,
+    { id:5, label:'Chapter 5', title:'Outcomes', subtitle:'Reach that keeps growing', scrollStart:0.84, scrollEnd:1.0, color:'#EF5A24', xCenterPct:72,
       sections:[
-        { title:'', body:'Nine community workshops reached 147 participants. Six awareness workshops reached 97 more.' },
-        { title:'', body:'The repeated request from communities, students, and teachers for more is itself a driver of change.' },
+        { title:'By the Numbers', body:'Nine community workshops reached 147 participants. Six awareness workshops reached 97 more.' },
+        { title:'A Continuing Demand', body:'The repeated request from communities, students, and teachers for more is itself a driver of change.' },
       ] },
   ],
 
