@@ -164,6 +164,23 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 }
 
 /* Gear — center-left, slow spin, soft shadow */
+/* Static soft shadow underlay — behind the gear, never rotates, so no per-frame
+   filter repaint. Approximates the gear's drop shadow with a blurred disc. */
+.landing__gear-wrap::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  width: 72%;
+  height: 72%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.30);
+  filter: blur(28px);
+  z-index: -1;
+  pointer-events: none;
+}
+
 .landing__gear-wrap {
   position: absolute;
   left: 38%;
@@ -180,9 +197,13 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   height: 100%;
   object-fit: contain;
   transform-origin: 50% 50%;
-  animation: spin-cw 24s linear infinite;
-  filter: drop-shadow(0 14px 30px rgba(0, 0, 0, 0.42))
-          drop-shadow(0 3px 8px rgba(0, 0, 0, 0.32));
+  transform: translateZ(0);            /* promote to its own compositor layer */
+  will-change: transform;
+  backface-visibility: hidden;
+  animation: spin-cw 27.6s linear infinite;   /* 15% slower (was 24s); linear = constant rate */
+  /* Soft shadow moved to .landing__gear-wrap::before — a static underlay not
+     re-evaluated each rotation frame. A drop-shadow on the spinning element
+     repaints every frame (shadow tracks the rotating silhouette) -> strobing. */
 }
 
 /* Title — left, vertically mid, left-aligned */
@@ -980,8 +1001,8 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
    KEYFRAMES
 ───────────────────────────────────────── */
 @keyframes spin-cw {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from { transform: rotate(0deg) translateZ(0); }
+  to   { transform: rotate(360deg) translateZ(0); }
 }
 
 /* ─────────────────────────────────────────
