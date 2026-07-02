@@ -492,10 +492,8 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* Single image — uniform scale only, never stretched (both max-* + auto keep aspect) */
 .credits-logos {
   display: block;
+  height: min(46vh, 420px);   /* size by height only — scales uniformly, never stretched */
   width: auto;
-  height: auto;
-  max-height: 62vh;
-  max-width: 22vw;
 }
 
 /* ─────────────────────────────────────────
