@@ -393,7 +393,11 @@
     for (var i = 0; i < cullItems.length; i++) {
       var it = cullItems[i];
       var on = (it.right + wrapX > -margin) && (it.left + wrapX < vw + margin);
-      if (on !== it.shown) { it.el.style.display = on ? '' : 'none'; it.shown = on; }
+      if (on !== it.shown) {
+        it.el.style.display = on ? '' : 'none';
+        it.shown = on;
+        if (!on) stopMotion(it.el);   // pause idle motion for culled layers (frees a slot; no-op if none)
+      }
     }
   }
 
@@ -727,8 +731,10 @@
     }
   }
 
+  // Cap concurrent idle animations: tighter on smaller screens.
+  function motionCap() { return window.innerWidth < 1600 ? 10 : MOTION_MAX_CONCURRENT; }
   function startMotion(el, motion) {
-    if (el._motionTween || motionActive >= MOTION_MAX_CONCURRENT) return;
+    if (el._motionTween || motionActive >= motionCap()) return;
     el._motionTween = buildMotion(el, motion);
     if (el._motionTween) {
       motionActive++;
