@@ -52,6 +52,8 @@
     loaderGearWrap:document.getElementById('loaderGearWrap'),
     loaderGear:    document.getElementById('loaderGear'),
     loaderPct:     document.getElementById('loaderPct'),
+    loaderBar:     document.getElementById('loaderBar'),
+    loaderBarFill: document.getElementById('loaderBarFill'),
     landing:       document.getElementById('landing'),
     driveBtn:      document.getElementById('driveBtn'),
     babSection:    document.getElementById('babSection'),
@@ -102,34 +104,104 @@
   }
 
   // ══════════════════════════════════════════
-  // SCREEN 1 — LOADER
-  // Runs on its own timer — does NOT wait for mural to load
+  // SCREEN 1 — LOADER  (real, first-scene-only gate)
+  // Blocks reveal on ONLY what the landing screen needs (skyline + gear + logos +
+  // track + fonts). Progress is measured, not faked. Everything else (base mural,
+  // bab tier, long track, closure, layers, audio) STREAMS in the background and
+  // never blocks interaction. Any critical asset that errors or times out still
+  // counts as "done" so the loader can never hang. A hard cap reveals regardless.
   // ══════════════════════════════════════════
+  var CRITICAL_ASSETS = [
+    'assets/images/Loading page bg.jpg',
+    'assets/images/home quds.png',
+    'assets/images/gear.png',
+    'assets/images/logos.png',
+    'assets/images/gear track home-01.png',
+  ];
+  var LOADER_MIN_MS = 600;    // avoid a flash on fast connections
+  var LOADER_MAX_MS = 9000;   // hard cap — reveal even if something is stuck
+
   function runLoader() {
-        // Position gear at Illustrator convergence point
+    // Position gear at Illustrator convergence point
     D.loaderGearWrap.style.left = ((IL_GEAR_X / IL_CANVAS_W) * 100) + '%';
     D.loaderGearWrap.style.top  = ((IL_GEAR_Y / IL_CANVAS_H) * 100) + '%';
 
-    // Preload track only - layers load on demand
-    var trackImg = new Image();
-    trackImg.onload = function() { S.trackImgEl = trackImg; drawTrack(); };
-    trackImg.src = 'assets/images/gear track long-01.png';
+    var startT   = (window.performance && performance.now) ? performance.now() : Date.now();
+    var total    = CRITICAL_ASSETS.length + 1;   // +1 unit for web fonts
+    var done     = 0;
+    var revealed = false;
 
-    // Timer-based loader - 3 seconds minimum
-    var pct = 0;
-    var ticker = setInterval(function() {
-      pct = Math.min(pct + (Math.random() * 9 + 2), 94);
-      if (D.loaderPct) D.loaderPct.textContent = Math.round(pct) + '%';
-    }, 100);
-
-    setTimeout(function() {
-      clearInterval(ticker);
-      if (D.loaderPct) D.loaderPct.textContent = '100%';
-      setTimeout(function() {
+    function setPct(p) {
+      p = Math.max(0, Math.min(100, Math.round(p)));
+      if (D.loaderPct) D.loaderPct.textContent = p + '%';
+      if (D.loaderBarFill) D.loaderBarFill.style.width = p + '%';
+      if (D.loaderBar) D.loaderBar.setAttribute('aria-valuenow', String(p));
+    }
+    function bump() {
+      done++;
+      setPct((done / total) * 100);
+      if (done >= total) finish();
+    }
+    function finish() {
+      if (revealed) return;
+      revealed = true;
+      setPct(100);
+      var elapsed = ((window.performance && performance.now) ? performance.now() : Date.now()) - startT;
+      var wait = Math.max(0, LOADER_MIN_MS - elapsed);
+      setTimeout(function () {
         D.loader.classList.add('out');
         S.phase = 'landing';
-      }, 350);
-    }, 3000);
+        streamRest();                 // now that the first scene is up, pull the rest
+      }, wait);
+    }
+
+    // Critical images — error counts as done (graceful; that asset just lazy-ins later).
+    CRITICAL_ASSETS.forEach(function (src) {
+      var img = new Image();
+      try { img.decoding = 'async'; img.fetchPriority = 'high'; } catch (e) {}
+      img.onload = bump;
+      img.onerror = function () { if (window.__telemetry) window.__telemetry.assetError(src); bump(); };
+      img.src = src;
+    });
+
+    // Fonts — one unit, with its own timeout so a slow font service can't hang us.
+    if (document.fonts && document.fonts.ready && typeof Promise !== 'undefined') {
+      var fontDone = false;
+      var fbump = function () { if (!fontDone) { fontDone = true; bump(); } };
+      var ft = setTimeout(fbump, 3000);
+      document.fonts.ready.then(function () { clearTimeout(ft); fbump(); }, fbump);
+    } else {
+      bump();
+    }
+
+    // Hard cap — never leave the user on the spinner.
+    setTimeout(finish, LOADER_MAX_MS);
+  }
+
+  // Stream everything non-critical AFTER first paint, at low priority, without
+  // blocking. Failures are swallowed (each surface has its own fallback/lazy path).
+  var streamStarted = false;
+  function streamRest() {
+    if (streamStarted) return;
+    streamStarted = true;
+
+    // Long track (needed for the mural rail) — sets S.trackImgEl when ready.
+    var trackImg = new Image();
+    try { trackImg.decoding = 'async'; } catch (e) {}
+    trackImg.onload  = function () { S.trackImgEl = trackImg; drawTrack(); };
+    trackImg.onerror = function () { if (window.__telemetry) window.__telemetry.assetError(trackImg.src); };
+    trackImg.src = 'assets/images/gear track long-01.png';
+
+    // Base mural + bab hi-res tier + closure — background, low priority.
+    ['assets/images/DoC mural no gear.jpg',
+     'assets/images/bab alamoud-hi.webp',
+     'assets/images/closure_scene_mural.webp'].forEach(function (src) {
+      var im = new Image();
+      try { im.decoding = 'async'; im.fetchPriority = 'low'; } catch (e) {}
+      im.onerror = function () { if (window.__telemetry) window.__telemetry.assetError(src); };
+      im.src = src;
+    });
+    // Individual mural layers keep loading on demand via lazyLoadLayers (scroll-driven).
   }
 
   // ══════════════════════════════════════════

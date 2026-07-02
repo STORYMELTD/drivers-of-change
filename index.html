@@ -17,10 +17,14 @@
        SCREEN 1 — LOADING
   ═══════════════════════════════ -->
   <div id="loader">
-    <img class="loader__bg" src="assets/images/Loading page bg.jpg" alt=""/>
+    <img class="loader__bg" src="assets/images/Loading page bg.jpg" alt="" decoding="async" fetchpriority="high"/>
     <div id="loaderGearWrap" class="loader__gear-wrap">
-      <img id="loaderGear" class="loader__gear" src="assets/images/gear.png" alt=""/>
+      <img id="loaderGear" class="loader__gear" src="assets/images/gear.png" alt="" decoding="async" fetchpriority="high"/>
       <span id="loaderPct" class="loader__pct">0%</span>
+    </div>
+    <div id="loaderBar" class="loader__progress" role="progressbar"
+         aria-label="Loading the experience" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="loaderBarFill" class="loader__progress-fill"></div>
     </div>
   </div>
 
@@ -30,14 +34,14 @@
   <section id="landing">
 
     <!-- Background -->
-    <img class="landing__bg" src="assets/images/Loading page bg.jpg" alt=""/>
+    <img class="landing__bg" src="assets/images/Loading page bg.jpg" alt="" decoding="async" fetchpriority="high"/>
 
     <!-- City mural behind everything -->
-    <img class="landing__quds" src="assets/images/home quds.png" alt=""/>
+    <img class="landing__quds" src="assets/images/home quds.png" alt="" decoding="async" fetchpriority="high"/>
 
     <!-- Main gear — 100%, slow rotation, drop shadow -->
     <div class="landing__gear-wrap">
-      <img id="landingGear" class="landing__gear" src="assets/images/gear.png" alt=""/>
+      <img id="landingGear" class="landing__gear" src="assets/images/gear.png" alt="" decoding="async" fetchpriority="high"/>
     </div>
 
     <!-- Angled leader line (emerges from gear at 45deg, then horizontal) + subtitle -->
@@ -59,11 +63,11 @@
     </div>
 
     <!-- Logos -->
-    <img class="landing__logos" src="assets/images/logos.png" alt="Pengon · EU · Overseas"/>
+    <img class="landing__logos" src="assets/images/logos.png" alt="Pengon · EU · Overseas" decoding="async" fetchpriority="high"/>
 
     <!-- Bottom tented track + CTA -->
     <div class="landing__bottom">
-      <img class="landing__track" src="assets/images/gear track home-01.png" alt=""/>
+      <img class="landing__track" src="assets/images/gear track home-01.png" alt="" decoding="async" fetchpriority="high"/>
       <button id="driveBtn" class="drive-btn">Drive Through</button>
     </div>
 
@@ -74,7 +78,7 @@
   ═══════════════════════════════ -->
   <section id="babSection">
     <div class="bab__wrap">
-      <img id="babImg" class="bab__img" src="assets/images/bab alamoud-01.png" alt="Bab al-Amoud — Damascus Gate, Jerusalem"/>
+      <img id="babImg" class="bab__img" src="assets/images/bab alamoud-01.png" alt="Bab al-Amoud — Damascus Gate, Jerusalem" decoding="async"/>
     </div>
     <!-- Dented track across the bottom — tiled like the mural (reuses long track asset) -->
     <div class="bab__track"></div>
@@ -102,7 +106,9 @@
           id="muralImg"
           class="mural-img"
           src="assets/images/DoC mural no gear.jpg"
-          alt="Drivers of Change mural"
+          alt=""
+          aria-hidden="true"
+          decoding="async"
           draggable="false"
         />
 
@@ -111,7 +117,8 @@
 
         <!-- Closure landscape — panorama appended to the right of the city;
              its feathered left edge overlaps the city's right edge (crossfade). -->
-        <img id="closureImg" class="closure-img" src="assets/images/closure_scene_mural.webp" alt="" draggable="false"/>
+        <img id="closureImg" class="closure-img" src="assets/images/closure_scene_mural.webp" alt="" aria-hidden="true"
+             decoding="async" fetchpriority="low" loading="lazy" draggable="false"/>
 
         <!-- Chapter text boxes -->
         <div id="chaptersEl" class="chapters-wrap"></div>
