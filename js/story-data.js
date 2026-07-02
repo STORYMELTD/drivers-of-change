@@ -228,7 +228,7 @@ const STORY_DATA = {
   ],
 
   audio: {
-    ambient: { src:'assets/audio/ambient.mp3', volume:0.35, loop:true },
+    ambient: { src:'assets/audio/jerusalem_main-full.mp3', volume:0.35, loop:true },
     chapterAudio: [],
   },
 

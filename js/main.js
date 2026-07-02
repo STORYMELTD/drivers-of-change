@@ -219,6 +219,10 @@
     D.muralGear.style.bottom   = seat + 'px';
     gsap.set(D.muralGear, { rotation: angle });
 
+    // drive feedback + soft whoosh once the gate zoom begins (latched in SFX)
+    sfx('drive', angle);
+    if (p > BAB_ROLL_END) sfx('whoosh'); else sfx('resetWhoosh');
+
     // fade the gear OUT at the window before the crossfade completes — nothing is
     // carried into the mural; a fresh gear re-enters from the left edge there.
     D.muralGear.style.opacity = p <= 0.80 ? 1
@@ -328,6 +332,7 @@
     }
     D.muralGear.style.left = (cx - size / 2) + 'px';
     gsap.set(D.muralGear, { rotation: rotation });
+    sfx('drive', rotation);   // gear hum + track roll + ticks tied to spin speed
 
     // Closure credits overlay — fade in over the last stretch of the full pan.
     if (D.creditsOverlay) {
@@ -518,7 +523,7 @@
       ScrollTrigger.create({
         trigger: D.storyStage,
         start: () => 'top+=' + (S.babZoomPx + ch.scrollStart * S.cityPanPx + buf) + 'px top',
-        onEnter:     () => gsap.to(box, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }),
+        onEnter:     () => { sfx('chime'); gsap.to(box, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }); },
         onLeaveBack: () => gsap.to(box, { opacity: 0, y: 24, duration: 0.4 }),
       });
       ScrollTrigger.create({
@@ -594,6 +599,7 @@
       dot.title     = ch.title;
       dot.addEventListener('click', () => {
         if (S.phase !== 'mural') return;
+        sfx('click');
         // target lands in the pan region (past the gate zoom), on the CITY basis
         const target = S.babZoomPx + ch.scrollStart * S.cityPanPx;
         gsap.to(window, { scrollTo: target, duration: 1.2, ease: 'power2.inOut' });
@@ -607,8 +613,8 @@
     D.storyNav.classList.toggle('collapsed', !NAV_DEFAULT_EXPANDED);
     var collapse = document.getElementById('navCollapse');
     var expand   = document.getElementById('navExpand');
-    if (collapse) collapse.addEventListener('click', function () { D.storyNav.classList.add('collapsed'); });
-    if (expand)   expand.addEventListener('click', function () { D.storyNav.classList.remove('collapsed'); });
+    if (collapse) collapse.addEventListener('click', function () { sfx('click'); D.storyNav.classList.add('collapsed'); });
+    if (expand)   expand.addEventListener('click', function () { sfx('click'); D.storyNav.classList.remove('collapsed'); });
   }
 
   function buildLayers() {
@@ -719,12 +725,14 @@
 
       box.querySelector('.chapter-box__close').addEventListener('click', function (e) {
         e.stopPropagation();
+        sfx('click');
         gsap.to(box, { opacity: 0, y: -20, duration: 0.4 });
       });
 
       // Accordion toggling — one row open at a time.
       box.querySelectorAll('.cbox-row').forEach(function (row) {
         row.querySelector('.cbox-row__header').addEventListener('click', function () {
+          sfx('click');
           const isOpen = row.classList.contains('open');
           box.querySelectorAll('.cbox-row').forEach(function (r) {
             r.classList.remove('open');
@@ -796,6 +804,7 @@
     if (c.image) html += '<div class="panel-image"><img src="' + c.image + '" alt="' + c.title + '" loading="lazy"/></div>';
     if (c.audio) html += '<div class="panel-audio"><p class="panel-audio-label">Listen</p><audio controls src="' + c.audio + '" preload="none"></audio></div>';
     D.panelContent.innerHTML = html;
+    sfx('pop');
     D.hotspotPanel.classList.add('open');
     D.hotspotPanel.setAttribute('aria-hidden', 'false');
     S.panelOpen = true;
@@ -807,17 +816,26 @@
     S.panelOpen = false;
   }
 
+  // Fire a procedural SFX by name — no-op if audio.js is absent (guarded internally by mute).
+  function sfx(name, arg) { if (typeof SFX !== 'undefined' && SFX[name]) SFX[name](arg); }
+
+  // Single opt-in toggle for ALL sound — ambient music (<audio>) + procedural SFX.
+  // Default muted; the click is a user gesture, so the AudioContext can start here.
   function toggleAudio() {
     S.audioEnabled = !S.audioEnabled;
     D.audioToggle.querySelector('.ico-on').style.display  = S.audioEnabled ? 'block' : 'none';
     D.audioToggle.querySelector('.ico-off').style.display = S.audioEnabled ? 'none'  : 'block';
+    if (typeof SFX !== 'undefined') SFX.init();   // create/resume ctx on this gesture
+
     if (S.audioEnabled) {
-      D.ambientAudio.src    = STORY_DATA.audio.ambient.src;
+      if (!D.ambientAudio.src) D.ambientAudio.src = STORY_DATA.audio.ambient.src;
+      D.ambientAudio.loop   = true;
       D.ambientAudio.volume = STORY_DATA.audio.ambient.volume;
       D.ambientAudio.play().catch(function() { S.audioEnabled = false; });
     } else {
       D.ambientAudio.pause();
     }
+    if (typeof SFX !== 'undefined') SFX.setEnabled(S.audioEnabled);
   }
 
   function setupEvents() {
