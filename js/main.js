@@ -475,6 +475,7 @@
     for (var i = 0; i < cullItems.length; i++) {
       var it = cullItems[i];
       var on = (it.right + wrapX > -margin) && (it.left + wrapX < vw + margin);
+      if (it.el.dataset.failed) on = false;   // a broken layer stays hidden
       if (on !== it.shown) {
         it.el.style.display = on ? '' : 'none';
         it.shown = on;
@@ -746,6 +747,13 @@
       // as the pan nears each layer's trigger. Always-visible base layers
       // (triggerAt 0) load eagerly right here.
       img.dataset.src         = layer.src;
+      // A failed layer must never break the pan: hide it, flag it so culling keeps
+      // it hidden, and report it. Set BEFORE src so it catches eager base layers too.
+      img.onerror = function () {
+        this.dataset.failed = '1';
+        this.style.display = 'none';
+        if (window.__telemetry) window.__telemetry.assetError(this.dataset.src, 'IMG');
+      };
       if (!layer.triggerAt) { img.src = layer.src; img.dataset.loaded = '1'; }
       img.decoding            = 'async';
       img.alt                 = '';
@@ -1152,17 +1160,26 @@
       if (!D.ambientAudio.src) D.ambientAudio.src = STORY_DATA.audio.ambient.src;
       D.ambientAudio.loop   = true;
       D.ambientAudio.volume = STORY_DATA.audio.ambient.volume;
-      D.ambientAudio.play().catch(function() { S.audioEnabled = false; });
+      // A missing/blocked track must not break anything: SFX still runs; UI stays sane.
+      D.ambientAudio.play().catch(function () {
+        if (window.__telemetry) window.__telemetry.beacon('audio', { message: 'ambient play blocked' });
+      });
     } else {
       D.ambientAudio.pause();
     }
     if (typeof SFX !== 'undefined') SFX.setEnabled(S.audioEnabled);
   }
 
+  // Ambient file failed to load — report, but keep the toggle usable (SFX/UI unaffected).
+  function onAmbientError() {
+    if (window.__telemetry) window.__telemetry.assetError(D.ambientAudio.currentSrc || D.ambientAudio.src, 'AUDIO');
+  }
+
   function setupEvents() {
     D.driveBtn.addEventListener('click', startJourney);
     D.closePanel.addEventListener('click', closePanel);
     D.audioToggle.addEventListener('click', toggleAudio);
+    D.ambientAudio.addEventListener('error', onAmbientError);
 
     document.addEventListener('keydown', function(e) {
       // Read-as-document dialog owns the keyboard while open.
@@ -1285,10 +1302,40 @@
     };
   }
 
+  // Never leave a blank / half-broken screen. If boot fails, drop the loader and
+  // hand the user the accessible text version instead of a dead canvas.
+  function degradeGracefully() {
+    try { if (D.loader) D.loader.classList.add('out'); document.body.style.overflow = ''; } catch (e) {}
+    try { buildReadDoc(); openReadDoc(); } catch (e) {}
+  }
+
+  function safeInit() {
+    try {
+      init();
+    } catch (err) {
+      if (window.__telemetry) {
+        window.__telemetry.beacon('error', {
+          message: 'init failed: ' + (err && err.message ? err.message : err),
+          stack: err && err.stack ? String(err.stack).slice(0, 700) : ''
+        });
+      }
+      degradeGracefully();
+    }
+  }
+
+  // Safety net: a scripting error while we're still on the loader would otherwise
+  // hang on the spinner (the loader's own 9s cap is the backstop; this is faster).
+  // Ignore resource (img/audio) errors here — those degrade on their own.
+  window.addEventListener('error', function (e) {
+    var isResource = e && e.target && e.target !== window && e.target.tagName;
+    if (isResource) return;
+    if (S.phase === 'loading' && D.loader && !D.loader.classList.contains('out')) degradeGracefully();
+  });
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', safeInit);
   } else {
-    init();
+    safeInit();
   }
 
 })();

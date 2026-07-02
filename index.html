@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css?v=42"/>
+  <!-- Telemetry + global error capture — loaded first so it catches boot errors. -->
+  <script src="js/telemetry.js?v=42"></script>
 </head>
 <body>
 
@@ -114,6 +116,7 @@
           aria-hidden="true"
           decoding="async"
           draggable="false"
+          onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='assets/images/mural-placeholder.svg';if(window.__telemetry)window.__telemetry.assetError(this.src,'IMG');}"
         />
 
         <!-- Individual layers — assembled from layer map (tomorrow) -->
@@ -122,7 +125,8 @@
         <!-- Closure landscape — panorama appended to the right of the city;
              its feathered left edge overlaps the city's right edge (crossfade). -->
         <img id="closureImg" class="closure-img" src="assets/images/closure_scene_mural.webp" alt="" aria-hidden="true"
-             decoding="async" fetchpriority="low" loading="lazy" draggable="false"/>
+             decoding="async" fetchpriority="low" loading="lazy" draggable="false"
+             onerror="this.style.display='none';if(window.__telemetry)window.__telemetry.assetError(this.src,'IMG');"/>
 
         <!-- Chapter text boxes -->
         <div id="chaptersEl" class="chapters-wrap"></div>
