@@ -159,6 +159,8 @@
     D.storyNav.classList.add('visible');
     scaleMural();                      // sizes mural + sets #storyStage height (incl. babZoomPx)
     buildLayers();
+    buildCullList();                   // x-ranges for viewport culling
+    cullLayers(0);                     // initial pass (pan at 0)
     initScrollEngine();                // the two phase triggers + layer/chapter triggers
     ScrollTrigger.refresh();
     setupMuralMotion();                // governed idle animations on `motion` layers
@@ -295,6 +297,7 @@
 
     // pan the city
     gsap.set(D.muralWrap, { x: -p2 * S.panPx });
+    cullLayers(-p2 * S.panPx);            // display:none layers outside the viewport band
 
     // gear entrance: enters LARGE and shrinks to rolling size, while its center
     // travels left-edge (x=0) → settleX, over the first GEAR_ENTER_FRAC; then holds.
@@ -363,6 +366,34 @@
       img.style.width  = Math.round(layer.wPct / 100 * S.muralW) + 'px';
       img.style.height = 'auto';
     });
+    buildCullList();   // left/width changed → refresh the cull ranges
+  }
+
+  // ══════════════════════════════════════════
+  // LAYER CULLING — only a handful of layers are ever on-screen at once.
+  // Precompute each layer's mural-space x-range (from data, no DOM reads) and
+  // display:none anything outside [−margin, vw+margin]. Driven by panUpdate's
+  // already-computed wrapX, so no per-tick layout reads.
+  // ══════════════════════════════════════════
+  var cullItems = [];
+  function buildCullList() {
+    cullItems = [];
+    STORY_DATA.layers.forEach(function (layer) {
+      var el = D.muralLayers.querySelector('[data-layer-id="' + layer.id + '"]');
+      if (!el) return;
+      var left  = Math.round(layer.xPct / 100 * S.muralW);
+      var width = Math.round(layer.wPct / 100 * S.muralW);
+      cullItems.push({ el: el, left: left, right: left + width, shown: null });
+    });
+  }
+  function cullLayers(wrapX) {
+    var vw = window.innerWidth;
+    var margin = Math.max(300, vw * 0.5);
+    for (var i = 0; i < cullItems.length; i++) {
+      var it = cullItems[i];
+      var on = (it.right + wrapX > -margin) && (it.left + wrapX < vw + margin);
+      if (on !== it.shown) { it.el.style.display = on ? '' : 'none'; it.shown = on; }
+    }
   }
 
   function scaleMural() {
