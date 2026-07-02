@@ -684,6 +684,18 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   color: rgba(255,255,255,0.92);
   text-shadow: 0 1px 2px rgba(0,0,0,0.22);
 }
+.cbox-row__panel-inner p + p { margin-top: 0.6em; }
+
+/* Chapter intro — lead-in paragraphs above the accordion, on the colored body */
+.chapter-box__intro {
+  padding: 2px 12px 8px;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.95);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+}
+.chapter-box__intro p + p { margin-top: 0.6em; }
 
 /* Close — in-flow at the top-right of the header */
 .chapter-box__close {

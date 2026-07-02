@@ -642,6 +642,11 @@
   function sectionTitle(sec, i) {
     return (sec.title && sec.title.trim()) ? sec.title : '[section title ' + (i + 1) + ']';
   }
+  // Render a paragraph list (string or array) as <p> blocks for intro / row bodies.
+  function paras(body) {
+    var arr = Array.isArray(body) ? body : [body];
+    return arr.map(function (p) { return '<p>' + p + '</p>'; }).join('');
+  }
 
   function buildChapterBoxes() {
     STORY_DATA.chapters.forEach((ch, i) => {
@@ -667,7 +672,7 @@
               '<span class="cbox-row__toggle" aria-hidden="true">' + (open ? '−' : '+') + '</span>' +
             '</button>' +
             '<div class="cbox-row__panel">' +
-              '<div class="cbox-row__panel-inner">' + sec.body + '</div>' +
+              '<div class="cbox-row__panel-inner">' + paras(sec.body) + '</div>' +
             '</div>' +
           '</div>'
         );
@@ -684,7 +689,10 @@
           '</button>' +
         '</div>' +
         '<p class="chapter-box__subtitle">' + chapterSubtitle(ch) + '</p>' +
-        '<div class="chapter-box__body">' + rows + '</div>';
+        '<div class="chapter-box__body">' +
+          (ch.intro && ch.intro.length ? '<div class="chapter-box__intro">' + paras(ch.intro) + '</div>' : '') +
+          rows +
+        '</div>';
 
       // per-chapter body fill at 90%
       box.querySelector('.chapter-box__body').style.background = hexToRgba(ch.color, 0.9);
