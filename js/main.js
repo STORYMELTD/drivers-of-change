@@ -729,13 +729,17 @@
   function startMotion(el, motion) {
     if (el._motionTween || motionActive >= MOTION_MAX_CONCURRENT) return;
     el._motionTween = buildMotion(el, motion);
-    if (el._motionTween) motionActive++;
+    if (el._motionTween) {
+      motionActive++;
+      el.style.willChange = 'transform';   // promote only while actively animating
+    }
   }
   function stopMotion(el) {
     if (!el._motionTween) return;
     el._motionTween.kill();
     el._motionTween = null;
     motionActive--;
+    el.style.willChange = 'auto';          // release the promotion (don't reserve memory)
     gsap.set(el, { clearProps: 'transform' });   // reset pose; opacity/lazy-load untouched
   }
 

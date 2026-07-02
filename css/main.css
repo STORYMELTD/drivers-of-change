@@ -402,7 +402,8 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 .mural-wrap {
   position: relative;
   height: 100vh;
-  will-change: transform;
+  /* No will-change: the 22k-px surface is too large to hold as one GPU texture.
+     Culling shrinks the paint area instead; only small animating layers get promoted. */
 }
 
 .mural-img {
@@ -558,7 +559,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
   /* bottom and left set dynamically in JS */
   object-fit: contain;
   transform-origin: 50% 50%;
-  will-change: transform, left, width, height;
+  will-change: transform;   /* promote transform only; left/width/height gain nothing */
   pointer-events: none;
 }
 
