@@ -25,6 +25,7 @@
   const GEAR_ENTER_FRAC    = 0.12;  // phase-2: fraction of the pan over which the gear rolls in from the edge
   const GEAR_SETTLE_X_FRAC = 0.50;  // phase-2: gear settle center as a fraction of vw (single knob)
   const CREDITS_FADE_START = 0.92;  // phase-2 p2 where the closure credits overlay begins fading in (→1.0)
+  const CLOSURE_GEAR_X_FRAC = 1.02; // closure rest: gear CENTER as fraction of vw — pushed hard right so ~2/3 sits off-frame (only the left arc shows)
   const IL_CANVAS_W      = 1496;  // UX artboard width  (matches loader reference)
   const IL_CANVAS_H      = 807;   // UX artboard height (matches loader reference)
   const IL_GEAR_X        = 1050;
@@ -306,8 +307,9 @@
 
     // CLOSURE ease-to-stop. cityFrac is where the city ends within the FULL pan
     // (S.cityPanPx of S.panPx). For p2 in [cityFrac, 1] — the closure landscape —
-    // the gear decelerates to a centered, motionless rest: ease-out spin (zero
-    // angular rate at p2=1) and center x eased to 0.5·vw. Before cityFrac it's the
+    // the gear decelerates to a motionless rest hard against the right edge:
+    // ease-out spin (zero angular rate at p2=1) and center x eased to
+    // CLOSURE_GEAR_X_FRAC·vw (only the left arc shows). Before cityFrac it's the
     // linear roll at settle x, unchanged.
     var cityFrac = S.panPx > 0 ? S.cityPanPx / S.panPx : 1;
     var rotation;
@@ -320,7 +322,7 @@
       // city spin rate muralDegrees decays smoothly to zero across the closure.
       var delta = muralDegrees * (1 - cityFrac) / 2;
       rotation  = cityFrac * muralDegrees + delta * k;
-      cx        = settleX + (vw * 0.5 - settleX) * k;  // ease center to 0.5·vw
+      cx        = settleX + (vw * CLOSURE_GEAR_X_FRAC - settleX) * k;  // ease center hard right (only left arc shows)
     }
     D.muralGear.style.left = (cx - size / 2) + 'px';
     gsap.set(D.muralGear, { rotation: rotation });

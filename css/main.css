@@ -477,7 +477,7 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 .credits-logos-wrap {
   position: absolute;
   top: 50%;
-  right: 4vw;
+  right: 28vw;                /* center-right — clears the right-resting gear */
   transform: translateY(-50%);
   display: flex;
   align-items: center;
