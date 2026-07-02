@@ -13,6 +13,10 @@
 </head>
 <body>
 
+  <!-- Skip links — first tab stops. The document view is the accessible,
+       non-scrubbed path to ALL chapter text for keyboard / screen-reader users. -->
+  <a class="skip-link" href="#readDoc" id="skipToDoc">Read as document (accessible text version)</a>
+
   <!-- ═══════════════════════════════
        SCREEN 1 — LOADING
   ═══════════════════════════════ -->
@@ -92,12 +96,12 @@
        PERSISTENT DRIVER (gear) — fixed overlay above bab + mural.
        #muralGear is RELOCATED into here for the bab→mural bridge (single node).
   ═══════════════════════════════ -->
-  <div id="driverLayer" class="driver-layer"></div>
+  <div id="driverLayer" class="driver-layer" aria-hidden="true"></div>
 
   <!-- ═══════════════════════════════
        SCREEN 4 — THE MURAL JOURNEY
   ═══════════════════════════════ -->
-  <main id="storyStage">
+  <main id="storyStage" aria-label="Interactive mural journey through East Jerusalem">
     <div id="muralViewport" class="mural-viewport">
       <div id="muralWrap" class="mural-wrap">
 
@@ -127,7 +131,7 @@
         <div id="hotspotsEl" class="hotspots-wrap"></div>
 
         <!-- Gear + track system — sits at bottom of mural -->
-        <div id="gearSystem" class="gear-system">
+        <div id="gearSystem" class="gear-system" aria-hidden="true">
           <div id="trackWrap" class="track-wrap">
             <!-- Track rendered as repeating canvas in JS -->
             <canvas id="trackCanvas" class="track-canvas"></canvas>
@@ -161,15 +165,16 @@
   <!-- ═══════════════════════════════
        HOTSPOT SIDE PANEL
   ═══════════════════════════════ -->
-  <aside id="hotspotPanel" class="hotspot-panel" aria-hidden="true">
-    <button class="panel-close" id="closePanel">
-      <img src="assets/images/X.svg" alt="Close"/>
+  <aside id="hotspotPanel" class="hotspot-panel" role="dialog" aria-modal="true"
+         aria-label="Details" aria-hidden="true">
+    <button class="panel-close" id="closePanel" aria-label="Close panel">
+      <img src="assets/images/X.svg" alt=""/>
     </button>
     <div class="panel-content" id="panelContent"></div>
   </aside>
 
   <!-- Navigation — slim bar (expanded) collapsible to a "Chapters" tab -->
-  <nav id="storyNav" class="story-nav">
+  <nav id="storyNav" class="story-nav" aria-label="Chapter navigation">
     <div class="story-nav__bar">
       <div class="story-nav__inner">
         <div id="navDots" class="nav-dots"></div>
@@ -184,7 +189,7 @@
   </nav>
 
   <!-- Audio -->
-  <button id="audioToggle" class="audio-toggle" aria-label="Toggle sound">
+  <button id="audioToggle" class="audio-toggle" type="button" aria-label="Enable sound" aria-pressed="false">
     <svg class="ico-on"  viewBox="0 0 24 24" fill="none" style="display:none"><path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="2"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <svg class="ico-off" viewBox="0 0 24 24" fill="none"><path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
   </button>
@@ -216,6 +221,21 @@
       <p class="rotate-gate__text">Please rotate your device to landscape</p>
     </div>
   </div>
+
+  <!-- ═══════════════════════════════
+       READ AS DOCUMENT — accessible, linear text version of the whole story.
+       Built at runtime from STORY_DATA (same source as the canvas). Hidden until
+       opened via the skip link; a full non-scrubbed path to all content so
+       keyboard / screen-reader users are never dependent on the animated pan.
+  ═══════════════════════════════ -->
+  <section id="readDoc" class="read-doc" role="dialog" aria-modal="true"
+           aria-labelledby="readDocTitle" aria-hidden="true" hidden>
+    <div class="read-doc__bar">
+      <h1 id="readDocTitle" class="read-doc__brand">Drivers of Change — full text</h1>
+      <button id="readDocClose" class="read-doc__close" type="button">Close ✕</button>
+    </div>
+    <article id="readDocBody" class="read-doc__body"></article>
+  </section>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>

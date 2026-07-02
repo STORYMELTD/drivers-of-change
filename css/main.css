@@ -1082,3 +1082,117 @@ button { cursor: pointer; border: none; background: none; color: inherit; font-f
 /* While the gate is up, freeze the page (and thus the ScrollTrigger scrub),
    overriding whatever inline overflow the current phase set. */
 body.rotate-locked { overflow: hidden !important; }
+/* While the read-as-document overlay is open, freeze the page behind it. */
+body.doc-locked { overflow: hidden !important; }
+
+/* ══════════════════════════════════════════
+   ACCESSIBILITY — skip link, focus rings, read-as-document
+══════════════════════════════════════════ */
+
+/* Skip link — off-screen until focused, then a visible pill top-left. */
+.skip-link {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 100001;                 /* above the rotate gate too */
+  padding: 10px 16px;
+  background: #14110d;
+  color: #F4A228;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 8px;
+  text-decoration: none;
+  transform: translateY(-150%);    /* hidden off-screen (no display:none → still focusable) */
+  transition: transform 0.18s ease;
+}
+.skip-link:focus { transform: translateY(0); outline: 3px solid #F4A228; outline-offset: 2px; }
+
+/* Visible focus rings for every interactive control (keyboard users). */
+a:focus-visible,
+button:focus-visible,
+.nav-dot:focus-visible,
+.hotspot:focus-visible,
+.cbox-row__header:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid #F4A228;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Read-as-document — full-screen accessible text version. */
+.read-doc {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;                 /* above the story, below the skip link */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #14110d;
+  color: #F0EDE6;
+  font-family: 'Ubuntu', sans-serif;
+}
+.read-doc[hidden] { display: none; }
+.read-doc__bar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  background: #14110d;
+  border-bottom: 2px solid #F4A228;
+}
+.read-doc__brand { font-size: 1.05rem; font-weight: 700; color: #F4A228; margin: 0; }
+.read-doc__close {
+  padding: 9px 16px;
+  background: #F4A228;
+  color: #14110d;
+  font-family: 'Ubuntu', sans-serif;
+  font-weight: 700;
+  border-radius: 999px;
+}
+.read-doc__body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+  line-height: 1.6;
+}
+.read-doc__body h2 {
+  margin: 40px 0 4px;
+  font-size: 1.6rem;
+  color: #F4A228;
+}
+.read-doc__body h2:first-child { margin-top: 8px; }
+.read-doc__body .read-doc__subtitle { margin: 0 0 12px; font-style: italic; opacity: 0.85; }
+.read-doc__body h3 { margin: 22px 0 6px; font-size: 1.15rem; color: #fff; }
+.read-doc__body p { margin: 0 0 12px; }
+
+/* ══════════════════════════════════════════
+   REDUCED MOTION — complete. Disable decorative/flourish animation everywhere.
+   Idle mural motion, skyline parallax and audio autostart are already gated in
+   JS (setupMuralMotion / setupLandingParallax / opt-in audio). This turns off the
+   CSS flourishes (gear spin, leader draw, entrance fades). Direct scroll-panning
+   is user-driven manipulation, not auto-motion; nav jumps become instant in JS.
+══════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .loader__gear,
+  .landing__gear { animation: none !important; }
+  /* Ensure entrance-animated elements land in their visible final state. */
+  .landing__subtitle,
+  .landing__logos,
+  .drive-btn,
+  .landing__title-wrap,
+  .landing__gear-wrap { opacity: 1 !important; }
+  .landing__leader-line { stroke-dashoffset: 0 !important; }
+  .landing__leader-dot { opacity: 1 !important; }
+  .rotate-gate__phone { animation: none !important; }
+}

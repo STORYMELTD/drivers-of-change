@@ -45,6 +45,8 @@
     closureW: 0, totalW: 0,     // closure panorama width; full panorama width (city + closure)
     st1: null, st2: null,       // the two phase ScrollTriggers (for resize re-pose)
     rotateBlocked: null,        // portrait-gate state (null = not yet evaluated)
+    lastFocus: null,            // element to restore focus to when a dialog closes
+    docOpen: false,             // read-as-document overlay open?
   };
 
   const D = {
@@ -81,6 +83,10 @@
     ambientAudio:  document.getElementById('ambientAudio'),
     audioToggle:   document.getElementById('audioToggle'),
     rotateGate:    document.getElementById('rotateGate'),
+    readDoc:       document.getElementById('readDoc'),
+    readDocBody:   document.getElementById('readDocBody'),
+    readDocClose:  document.getElementById('readDocClose'),
+    skipToDoc:     document.getElementById('skipToDoc'),
   };
 
   // ══════════════════════════════════════════
@@ -99,6 +105,7 @@
     buildHotspots();
     setupEvents();
     setupRotateGate();
+    setupReadDoc();
     setupLandingParallax();
     runLoader();
   }
@@ -704,13 +711,15 @@
       }
       const dot = document.createElement('button');
       dot.className = 'nav-dot';
+      dot.type      = 'button';
       dot.title     = ch.title;
+      dot.setAttribute('aria-label', 'Go to ' + ch.label + ': ' + ch.title);
       dot.addEventListener('click', () => {
         if (S.phase !== 'mural') return;
         sfx('click');
         // target lands in the pan region (past the gate zoom), on the CITY basis
         const target = S.babZoomPx + ch.scrollStart * S.cityPanPx;
-        gsap.to(window, { scrollTo: target, duration: 1.2, ease: 'power2.inOut' });
+        jumpTo(target);   // instant under reduced-motion, animated otherwise
       });
       D.navDots.appendChild(dot);
     });
@@ -916,14 +925,15 @@
         var mm  = full.match(/^(\d+\.\d+)\s+([\s\S]*)$/);
         var num = mm ? mm[1] : '';
         var ttl = mm ? mm[2] : full;
+        var pid = 'cbox-' + i + '-row-' + si + '-panel';   // header→panel wiring
         return (
           '<div class="cbox-row' + (open ? ' open' : '') + '">' +
-            '<button class="cbox-row__header" aria-expanded="' + open + '">' +
+            '<button type="button" class="cbox-row__header" aria-expanded="' + open + '" aria-controls="' + pid + '">' +
               '<span class="cbox-row__toggle" aria-hidden="true">' + (open ? '−' : '+') + '</span>' +
               (num ? '<span class="cbox-row__num">' + num + '</span>' : '') +
               '<span class="cbox-row__title">' + ttl + '</span>' +
             '</button>' +
-            '<div class="cbox-row__panel">' +
+            '<div class="cbox-row__panel" id="' + pid + '" role="region">' +
               '<div class="cbox-row__panel-inner">' + paras(sec.body) + '</div>' +
             '</div>' +
           '</div>'
@@ -1029,20 +1039,104 @@
     if (c.image) html += '<div class="panel-image"><img src="' + c.image + '" alt="' + c.title + '" loading="lazy"/></div>';
     if (c.audio) html += '<div class="panel-audio"><p class="panel-audio-label">Listen</p><audio controls src="' + c.audio + '" preload="none"></audio></div>';
     D.panelContent.innerHTML = html;
+    D.hotspotPanel.setAttribute('aria-label', c.title || 'Details');   // dialog accessible name
     sfx('pop');
+    S.lastFocus = document.activeElement;   // remember the trigger to restore on close
     D.hotspotPanel.classList.add('open');
     D.hotspotPanel.setAttribute('aria-hidden', 'false');
     S.panelOpen = true;
+    // Move focus into the dialog (close button) so keyboard users land inside it.
+    if (D.closePanel && D.closePanel.focus) D.closePanel.focus();
   }
 
   function closePanel() {
     D.hotspotPanel.classList.remove('open');
     D.hotspotPanel.setAttribute('aria-hidden', 'true');
     S.panelOpen = false;
+    // Return focus to whatever opened the panel (the hotspot button).
+    if (S.lastFocus && S.lastFocus.focus) { try { S.lastFocus.focus(); } catch (e) {} }
+    S.lastFocus = null;
+  }
+
+  // Keep Tab focus inside an open dialog (simple two-end trap).
+  function trapFocus(container, e) {
+    var f = container.querySelectorAll(
+      'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    f = [].slice.call(f).filter(function (el) { return el.offsetParent !== null; });
+    if (!f.length) { e.preventDefault(); return; }
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
 
   // Fire a procedural SFX by name — no-op if audio.js is absent (guarded internally by mute).
   function sfx(name, arg) { if (typeof SFX !== 'undefined' && SFX[name]) SFX[name](arg); }
+
+  // Live check (re-reads the media query each call so OS changes are honored).
+  function prefersReducedMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  // Scroll to a target Y. Reduced-motion → jump instantly (no animated pan) so the
+  // user is never dependent on the scrubbed motion to reach content.
+  function jumpTo(target) {
+    if (prefersReducedMotion() || typeof gsap === 'undefined') {
+      window.scrollTo(0, target);
+    } else {
+      gsap.to(window, { scrollTo: target, duration: 1.2, ease: 'power2.inOut' });
+    }
+  }
+
+  // ══════════════════════════════════════════
+  // READ AS DOCUMENT — accessible linear text, built from the SAME STORY_DATA the
+  // canvas uses (no duplicated copy). Reachable via the skip link; a full path to
+  // all chapter text for keyboard / screen-reader users, independent of the pan.
+  // ══════════════════════════════════════════
+  function buildReadDoc() {
+    if (!D.readDocBody) return;
+    var esc = function (s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    };
+    var html = '<p>A youth-led environmental-justice project in East Jerusalem — ' +
+               'Pengon / Friends of the Earth Palestine, 2022–2025. Full text below.</p>';
+    STORY_DATA.chapters.forEach(function (ch) {
+      html += '<h2>' + esc(ch.label) + ' · ' + esc(ch.title) + '</h2>';
+      if (ch.subtitle) html += '<p class="read-doc__subtitle">' + esc(ch.subtitle) + '</p>';
+      if (ch.intro && ch.intro.length) html += paras(ch.intro.map(esc));
+      if (ch.body && ch.body.length)  html += paras(ch.body.map(esc));
+      (ch.sections || []).forEach(function (sec, i) {
+        html += '<h3>' + esc(sectionTitle(sec, i)) + '</h3>';
+        html += paras((Array.isArray(sec.body) ? sec.body : [sec.body]).map(esc));
+      });
+    });
+    D.readDocBody.innerHTML = html;
+  }
+
+  function openReadDoc() {
+    if (!D.readDoc || S.docOpen) return;
+    S.lastFocus = document.activeElement;
+    D.readDoc.hidden = false;
+    D.readDoc.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('doc-locked');
+    S.docOpen = true;
+    if (D.readDocClose && D.readDocClose.focus) D.readDocClose.focus();
+  }
+
+  function closeReadDoc() {
+    if (!D.readDoc || !S.docOpen) return;
+    D.readDoc.hidden = true;
+    D.readDoc.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('doc-locked');
+    S.docOpen = false;
+    if (S.lastFocus && S.lastFocus.focus) { try { S.lastFocus.focus(); } catch (e) {} }
+    S.lastFocus = null;
+  }
+
+  function setupReadDoc() {
+    buildReadDoc();
+    if (D.skipToDoc) D.skipToDoc.addEventListener('click', function (e) { e.preventDefault(); openReadDoc(); });
+    if (D.readDocClose) D.readDocClose.addEventListener('click', closeReadDoc);
+  }
 
   // Single opt-in toggle for ALL sound — ambient music (<audio>) + procedural SFX.
   // Default muted; the click is a user gesture, so the AudioContext can start here.
@@ -1050,6 +1144,8 @@
     S.audioEnabled = !S.audioEnabled;
     D.audioToggle.querySelector('.ico-on').style.display  = S.audioEnabled ? 'block' : 'none';
     D.audioToggle.querySelector('.ico-off').style.display = S.audioEnabled ? 'none'  : 'block';
+    D.audioToggle.setAttribute('aria-pressed', String(S.audioEnabled));
+    D.audioToggle.setAttribute('aria-label', S.audioEnabled ? 'Mute sound' : 'Enable sound');
     if (typeof SFX !== 'undefined') SFX.init();   // create/resume ctx on this gesture
 
     if (S.audioEnabled) {
@@ -1069,11 +1165,23 @@
     D.audioToggle.addEventListener('click', toggleAudio);
 
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && S.panelOpen) { closePanel(); return; }
+      // Read-as-document dialog owns the keyboard while open.
+      if (S.docOpen) {
+        if (e.key === 'Escape') { closeReadDoc(); return; }
+        if (e.key === 'Tab') { trapFocus(D.readDoc, e); return; }
+        return;
+      }
+      // Hotspot panel dialog: Escape closes, Tab is trapped inside.
+      if (S.panelOpen) {
+        if (e.key === 'Escape') { closePanel(); return; }
+        if (e.key === 'Tab') { trapFocus(D.hotspotPanel, e); return; }
+        return;
+      }
       if (S.phase !== 'mural' || S.rotateBlocked) return;
       const step = (document.body.scrollHeight - window.innerHeight) * 0.04;
-      if (e.key === 'ArrowRight') window.scrollBy({ top:  step, behavior: 'smooth' });
-      if (e.key === 'ArrowLeft')  window.scrollBy({ top: -step, behavior: 'smooth' });
+      const smooth = prefersReducedMotion() ? 'auto' : 'smooth';
+      if (e.key === 'ArrowRight') window.scrollBy({ top:  step, behavior: smooth });
+      if (e.key === 'ArrowLeft')  window.scrollBy({ top: -step, behavior: smooth });
     });
 
     document.addEventListener('click', function(e) {
