@@ -664,12 +664,17 @@
       // Accordion rows from story-data sections. One open at a time; the panel
       // scrolls internally (max-height + overflow-y). Rows default to first open.
       const rows = ch.sections.map(function (sec, si) {
-        const open = si === 0;
+        const open = false;                     // all rows collapsed on load
+        var full = sectionTitle(sec, si);       // "N.N Title"
+        var mm  = full.match(/^(\d+\.\d+)\s+([\s\S]*)$/);
+        var num = mm ? mm[1] : '';
+        var ttl = mm ? mm[2] : full;
         return (
           '<div class="cbox-row' + (open ? ' open' : '') + '">' +
             '<button class="cbox-row__header" aria-expanded="' + open + '">' +
-              '<span class="cbox-row__title">' + sectionTitle(sec, si) + '</span>' +
               '<span class="cbox-row__toggle" aria-hidden="true">' + (open ? '−' : '+') + '</span>' +
+              (num ? '<span class="cbox-row__num">' + num + '</span>' : '') +
+              '<span class="cbox-row__title">' + ttl + '</span>' +
             '</button>' +
             '<div class="cbox-row__panel">' +
               '<div class="cbox-row__panel-inner">' + paras(sec.body) + '</div>' +
@@ -681,8 +686,7 @@
       box.innerHTML =
         '<div class="chapter-box__header">' +
           '<div class="chapter-box__heading">' +
-            '<p class="chapter-box__label">' + ch.label + '</p>' +
-            '<h2 class="chapter-box__title">' + ch.title + '</h2>' +
+            '<h2 class="chapter-box__title">' + ch.id + '. ' + ch.title + '</h2>' +
           '</div>' +
           '<button class="chapter-box__close" aria-label="Close">' +
             '<img src="assets/images/X.svg" alt="Close"/>' +
